@@ -1,0 +1,6 @@
+1:"$Sreact.fragment"
+2:I[97367,["/woertl/_next/static/chunks/0dbhjjzl8qfwv.js"],"OutletBoundary"]
+3:"$Sreact.suspense"
+:HL["/woertl/_next/static/chunks/06._-oth~5wos.css","style"]
+0:{"rsc":["$","$1","c",{"children":[["$","main",null,{"className":"page-module___8aEwW__main","children":[["$","h1",null,{"className":"page-module___8aEwW__title","children":"wörtl"}],["$","p",null,{"className":"page-module___8aEwW__subtitle","children":"Willkommen bei wörtl – das deutsche Wordle"}]]}],[["$","link","0",{"rel":"stylesheet","href":"/woertl/_next/static/chunks/06._-oth~5wos.css","precedence":"next"}]],["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"isPartial":false,"staleTime":300,"varyParams":null,"buildId":"Db3fkg1gn_FyslNMLEcFc"}
+4:null
