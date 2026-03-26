@@ -1,0 +1,24 @@
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 16px;
+}
+
+.title {
+  font-family: var(--font-main);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  letter-spacing: 0.05em;
+}
+
+.subtitle {
+  font-family: var(--font-main);
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
