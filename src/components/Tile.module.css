@@ -1,0 +1,64 @@
+.tile {
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-tile);
+  font-family: var(--font-main);
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-text-on-color);
+  border: 2px solid transparent;
+  background-color: var(--color-unused);
+  transition: background-color 0.1s ease;
+  user-select: none;
+}
+
+.correct {
+  background-color: var(--color-correct);
+  border-color: var(--color-correct);
+}
+
+.present {
+  background-color: var(--color-present);
+  border-color: var(--color-present);
+}
+
+.absent {
+  background-color: var(--color-absent);
+  border-color: var(--color-absent);
+}
+
+.filledNoFeedback {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.activeEmpty {
+  border-color: var(--color-primary);
+  background-color: var(--color-unused);
+}
+
+.activeFilled {
+  border-color: var(--color-primary-dark);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+}
+
+.flip {
+  animation: tileFlip var(--animation-duration, 500ms) ease forwards;
+}
+
+@keyframes tileFlip {
+  0% {
+    transform: rotateX(0deg);
+  }
+  50% {
+    transform: rotateX(90deg);
+  }
+  100% {
+    transform: rotateX(0deg);
+  }
+}

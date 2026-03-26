@@ -26,6 +26,7 @@
   /* Border radii */
   --radius-tile: 4px;
   --radius-card: 12px;
+  --radius-key: 4px;
 
   /* Animation duration – set to 0s via prefers-reduced-motion */
   --animation-duration: 500ms;
