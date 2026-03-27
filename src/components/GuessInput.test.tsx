@@ -98,4 +98,38 @@ describe("GuessInput", () => {
     fireEvent.keyDown(input, { key: "ä" });
     expect(onLetterInput).toHaveBeenCalledWith("Ä");
   });
+
+  it("renders submit button labeled Eingabe", () => {
+    renderInput();
+    expect(screen.getByRole("button", { name: "Eingabe" })).toBeInTheDocument();
+  });
+
+  it("calls onSubmit when button is clicked with 5 characters", () => {
+    const onSubmit = vi.fn();
+    renderInput({ value: "TANTE", onSubmit });
+    fireEvent.click(screen.getByRole("button", { name: "Eingabe" }));
+    expect(onSubmit).toHaveBeenCalled();
+  });
+
+  it("calls onError when button is clicked with fewer than 5 characters", () => {
+    const onError = vi.fn();
+    renderInput({ value: "TAN", onError });
+    fireEvent.click(screen.getByRole("button", { name: "Eingabe" }));
+    expect(onError).toHaveBeenCalled();
+  });
+
+  it("submit button is disabled when disabled prop is true", () => {
+    renderInput({ disabled: true });
+    expect(screen.getByRole("button", { name: "Eingabe" })).toBeDisabled();
+  });
+
+  it("shows error message when error prop is true", () => {
+    renderInput({ error: true });
+    expect(screen.getByText("Nicht im Wörterbuch")).toBeInTheDocument();
+  });
+
+  it("does not show error message when error prop is false", () => {
+    renderInput({ error: false });
+    expect(screen.queryByText("Nicht im Wörterbuch")).not.toBeInTheDocument();
+  });
 });

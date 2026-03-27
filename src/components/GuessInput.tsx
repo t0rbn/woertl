@@ -65,6 +65,15 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
 
     const isFull = value.length === 5;
 
+    function handleButtonClick() {
+      if (disabled) return;
+      if (isFull) {
+        onSubmit();
+      } else {
+        onError();
+      }
+    }
+
     return (
       <div className={styles.wrapper}>
         <input
@@ -86,6 +95,20 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
         />
         <div className={styles.hint}>
           Enter zum Absenden / Backspace zum Löschen
+        </div>
+        <button
+          className={`${styles.submitBtn} ${isFull ? styles.submitBtnFull : ""}`}
+          onClick={handleButtonClick}
+          disabled={disabled}
+          type="button"
+        >
+          Eingabe
+        </button>
+        <div
+          aria-live="polite"
+          className={styles.errorMsg}
+        >
+          {error ? "Nicht im Wörterbuch" : ""}
         </div>
       </div>
     );

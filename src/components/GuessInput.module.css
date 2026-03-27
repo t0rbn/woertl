@@ -72,3 +72,34 @@
   60% { transform: translateX(-4px); }
   80% { transform: translateX(4px); }
 }
+
+.submitBtn {
+  padding: 10px 32px;
+  background: var(--color-primary-dark);
+  color: var(--color-text-on-color);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: box-shadow 150ms ease, background 150ms ease;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submitBtn.submitBtnFull {
+  background: var(--color-primary-dark);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.errorMsg {
+  font-family: var(--font-main);
+  font-size: 0.7rem;
+  color: var(--color-error);
+  text-align: center;
+  min-height: 1em;
+}
