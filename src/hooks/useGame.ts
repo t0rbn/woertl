@@ -1,9 +1,8 @@
 "use client";
 
 import { useReducer, useEffect, useState } from "react";
-import type { GameState, TileState, KeyState } from "@/types/gameTypes";
+import type { GameState, TileState } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
-import { calculateKeyboardState } from "@/lib/calculateKeyboardState";
 
 const TARGET_WORD = "TANTE";
 const MAX_ATTEMPTS = 6;
@@ -13,11 +12,6 @@ type Action =
   | { type: "ADD_LETTER"; letter: string }
   | { type: "DELETE_LETTER" }
   | { type: "SUBMIT_GUESS" };
-
-type ReducerResult = {
-  state: GameState;
-  errorMessage?: string;
-};
 
 function createInitialState(): GameState {
   return {
@@ -81,7 +75,6 @@ export type UseGameReturn = {
   deleteLetter: () => void;
   submitGuess: () => void;
   toastMessage: string | null;
-  keyboardState: KeyState;
 };
 
 export function useGame(): UseGameReturn {
@@ -112,14 +105,11 @@ export function useGame(): UseGameReturn {
     return () => clearTimeout(timer);
   }, [toastMessage]);
 
-  const keyboardState: KeyState = calculateKeyboardState(gameState.guesses);
-
   return {
     gameState,
     addLetter,
     deleteLetter,
     submitGuess,
     toastMessage,
-    keyboardState,
   };
 }

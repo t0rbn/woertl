@@ -1,69 +1,50 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import styles from "./page.module.css";
 import { useGame } from "@/hooks/useGame";
-import { useKeyboardInput } from "@/hooks/useKeyboardInput";
 import Toast from "@/components/Toast";
 import TileGrid from "@/components/TileGrid";
 import ResultBanner from "@/components/ResultBanner";
-import Keyboard from "@/components/Keyboard";
+import GuessInput from "@/components/GuessInput";
 
 export default function Home() {
-  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, keyboardState } =
+  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage } =
     useGame();
-  const [shakeRow, setShakeRow] = useState(false);
+  const [inputError, setInputError] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const focusInput = useCallback(() => {
+    inputRef.current?.focus();
+  }, []);
 
   function handleSubmitGuess() {
-    const currentChars = Array.from(gameState.currentGuess);
-    if (currentChars.length !== 5) {
-      setShakeRow(true);
-      setTimeout(() => setShakeRow(false), 350);
-    }
     submitGuess();
+    setTimeout(() => focusInput(), 50);
   }
 
-  function handleKeyPress(key: string) {
-    if (key === "ENTER") {
-      handleSubmitGuess();
-    } else if (key === "BACKSPACE") {
-      deleteLetter();
-    } else {
-      addLetter(key);
-    }
+  function handleLetterInput(letter: string) {
+    addLetter(letter);
   }
 
-  useKeyboardInput({
-    status: gameState.status,
-    addLetter,
-    deleteLetter,
-    submitGuess: handleSubmitGuess,
-  });
+  function handleDelete() {
+    deleteLetter();
+  }
+
+  function handleError() {
+    // submitGuess() triggers the toast message for "Nicht genug Buchstaben"
+    submitGuess();
+    setInputError(true);
+    setTimeout(() => {
+      setInputError(false);
+      focusInput();
+    }, 350);
+  }
 
   const isGameOver = gameState.status !== "playing";
 
   return (
     <div className={styles.pageWrapper}>
-      <header className={styles.appBar}>
-        <div className={styles.appBarTitle}>woertl</div>
-        <div className={styles.appBarActions}>
-          <button
-            className={styles.iconButton}
-            aria-label="Hilfe"
-            title="Hilfe"
-          >
-            ?
-          </button>
-          <button
-            className={styles.iconButton}
-            aria-label="Einstellungen"
-            title="Einstellungen"
-          >
-            ⚙
-          </button>
-        </div>
-      </header>
-
       <Toast message={toastMessage} />
 
       <main className={styles.main}>
@@ -73,7 +54,7 @@ export default function Home() {
             currentGuess={gameState.currentGuess}
             currentRow={gameState.guesses.length}
             status={gameState.status}
-            shakeRow={shakeRow}
+            shakeRow={false}
           />
 
           {isGameOver && (
@@ -84,10 +65,15 @@ export default function Home() {
             />
           )}
 
-          <Keyboard
-            keyboardState={keyboardState}
-            onKeyPress={handleKeyPress}
+          <GuessInput
+            ref={inputRef}
+            value={gameState.currentGuess}
+            onLetterInput={handleLetterInput}
+            onDelete={handleDelete}
+            onSubmit={handleSubmitGuess}
+            onError={handleError}
             disabled={isGameOver}
+            error={inputError}
           />
         </div>
       </main>
