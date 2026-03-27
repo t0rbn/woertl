@@ -1,3 +1,20 @@
+/* Self-hosted Comic Neue font (OFL licensed) */
+@font-face {
+  font-family: "Comic Neue";
+  src: url("/woertl/fonts/comic-neue-regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Comic Neue";
+  src: url("/woertl/fonts/comic-neue-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Design Tokens – wörtl */
 :root {
   /* Color tokens */
@@ -21,7 +38,7 @@
   --color-cb-present: #E69F00;
 
   /* Typography */
-  --font-main: "Comic Sans MS", "Comic Sans", cursive;
+  --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
 
   /* Border radii */
   --radius-tile: 4px;

@@ -1,0 +1,105 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.input {
+  background-color: var(--color-surface-raised);
+  border: 2px solid var(--color-primary-dark);
+  border-radius: 8px;
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-align: center;
+  text-transform: uppercase;
+  max-width: 280px;
+  width: 100%;
+  padding: 10px 16px;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.input::placeholder {
+  color: var(--color-outline);
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  font-size: 1rem;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.25);
+}
+
+.input.full {
+  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.4);
+}
+
+.input.error {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.3);
+  animation: shake 300ms ease;
+}
+
+@media (min-width: 500px) {
+  .input {
+    max-width: 320px;
+  }
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hint {
+  font-family: var(--font-main);
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); }
+  80% { transform: translateX(4px); }
+}
+
+.submitBtn {
+  padding: 10px 32px;
+  background: var(--color-primary-dark);
+  color: var(--color-text-on-color);
+  border: none;
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: box-shadow 150ms ease, background 150ms ease;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.submitBtn.submitBtnFull {
+  background: var(--color-primary-dark);
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.errorMsg {
+  font-family: var(--font-main);
+  font-size: 0.7rem;
+  color: var(--color-error);
+  text-align: center;
+  min-height: 1em;
+}
