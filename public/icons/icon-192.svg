@@ -1,0 +1,25 @@
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#1a0033" rx="28"/>
+  <!-- Row 1: W O E -->
+  <rect x="20" y="48" width="52" height="52" rx="6" fill="#7c4dff"/>
+  <text x="46" y="84" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="32" fill="#ffffff">W</text>
+  <rect x="80" y="48" width="52" height="52" rx="6" fill="#3d007a"/>
+  <text x="106" y="84" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="32" fill="#ffffff">O</text>
+  <rect x="140" y="48" width="52" height="52" rx="6" fill="#2b0057"/>
+  <text x="166" y="84" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="32" fill="#ce93d8">E</text>
+  <!-- Row 2: R T -->
+  <rect x="50" y="108" width="52" height="52" rx="6" fill="#7c4dff"/>
+  <text x="76" y="144" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="32" fill="#ffffff">R</text>
+  <rect x="110" y="108" width="52" height="52" rx="6" fill="#7c4dff"/>
+  <text x="136" y="144" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="32" fill="#ffffff">T</text>
+</svg>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 
 export const metadata: Metadata = {
   title: "wörtl",
@@ -9,6 +10,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  themeColor: "#7c4dff",
 };
 
 export default function RootLayout({
@@ -18,7 +20,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body>{children}</body>
+      <head>
+        <link rel="manifest" href="/woertl/manifest.json" />
+        <link rel="apple-touch-icon" href="/woertl/icons/icon-192.png" />
+      </head>
+      <body>
+        <ServiceWorkerRegistrar />
+        {children}
+      </body>
     </html>
   );
 }
