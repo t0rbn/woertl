@@ -1,14 +1,24 @@
 .grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  align-items: center;
+  gap: var(--tile-gap, 6px);
+  width: 100%;
 }
 
 .row {
-  display: flex;
-  flex-direction: row;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--tile-gap, 6px);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .grid {
+    gap: 4px;
+  }
+
+  .row {
+    gap: 4px;
+  }
 }
 
 .srOnly {

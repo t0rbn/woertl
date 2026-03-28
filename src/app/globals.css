@@ -40,6 +40,11 @@
   /* Typography */
   --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
 
+  /* Responsive layout tokens */
+  --game-max-width: 560px;
+  --game-padding: 16px;
+  --tile-gap: 6px;
+
   /* Border radii */
   --radius-tile: 4px;
   --radius-card: 12px;

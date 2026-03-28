@@ -17,7 +17,7 @@
   letter-spacing: 0.15em;
   text-align: center;
   text-transform: uppercase;
-  max-width: 280px;
+  max-width: 80%;
   width: 100%;
   padding: 10px 16px;
   outline: none;
@@ -49,7 +49,7 @@
 
 @media (min-width: 500px) {
   .input {
-    max-width: 320px;
+    max-width: 340px;
   }
 }
 

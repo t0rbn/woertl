@@ -15,6 +15,12 @@
   animation: toastFadeIn var(--animation-duration, 300ms) ease forwards;
 }
 
+@media (orientation: landscape) and (max-height: 500px) {
+  .toast {
+    top: 12px;
+  }
+}
+
 @keyframes toastFadeIn {
   from {
     opacity: 0;

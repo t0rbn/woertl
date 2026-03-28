@@ -3,9 +3,9 @@
   flex: 1;
   flex-direction: column;
   align-items: center;
-  padding: 16px 8px;
+  padding: 16px var(--game-padding);
   gap: 16px;
-  max-width: 500px;
+  max-width: var(--game-max-width);
   width: 100%;
   margin: 0 auto;
 }
@@ -16,11 +16,28 @@
   align-items: center;
   gap: 16px;
   width: 100%;
-  max-width: 340px;
+  max-width: var(--game-max-width);
 }
 
 .pageWrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .main {
+    padding: 8px var(--game-padding);
+  }
+
+  .gameArea {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .gameArea > :first-child {
+    flex: 0 0 57%;
+    max-width: 57%;
+  }
 }
