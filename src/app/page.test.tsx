@@ -80,9 +80,17 @@ describe("Home page – integration", () => {
   it("loses after 6 wrong guesses and shows lost banner with target word", async () => {
     render(<Home />);
     const input = screen.getByLabelText("Ratewort eingeben");
-    const wrongGuess = ["b", "r", "o", "t", "e"];
-    for (let i = 0; i < 6; i++) {
-      wrongGuess.forEach((key) => fireEvent.keyDown(input, { key }));
+    // Use 6 different 5-letter words to avoid triggering duplicate validation
+    const wrongGuesses = [
+      ["b", "r", "o", "t", "e"],
+      ["k", "r", "i", "s", "e"],
+      ["l", "a", "m", "p", "e"],
+      ["h", "u", "n", "d", "e"],
+      ["v", "o", "g", "e", "l"],
+      ["m", "u", "s", "i", "k"],
+    ];
+    for (const guess of wrongGuesses) {
+      guess.forEach((key) => fireEvent.keyDown(input, { key }));
       fireEvent.keyDown(input, { key: "Enter" });
     }
 

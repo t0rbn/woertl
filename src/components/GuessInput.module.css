@@ -73,6 +73,12 @@
   80% { transform: translateX(4px); }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .input.error {
+    animation: none;
+  }
+}
+
 .submitBtn {
   padding: 10px 32px;
   background: var(--color-primary-dark);

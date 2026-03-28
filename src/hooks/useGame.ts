@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useEffect, useState } from "react";
+import { useReducer, useEffect, useState, useCallback } from "react";
 import type { GameState, TileState } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
 
@@ -75,28 +75,44 @@ export type UseGameReturn = {
   deleteLetter: () => void;
   submitGuess: () => void;
   toastMessage: string | null;
+  duplicateError: boolean;
 };
 
 export function useGame(): UseGameReturn {
   const [gameState, dispatch] = useReducer(gameReducer, createInitialState());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [duplicateError, setDuplicateError] = useState(false);
 
-  function addLetter(letter: string) {
+  const addLetter = useCallback((letter: string) => {
     dispatch({ type: "ADD_LETTER", letter: letter.toUpperCase() });
-  }
+  }, []);
 
-  function deleteLetter() {
+  const deleteLetter = useCallback(() => {
     dispatch({ type: "DELETE_LETTER" });
-  }
+  }, []);
 
-  function submitGuess() {
+  const submitGuess = useCallback(() => {
     const currentChars = Array.from(gameState.currentGuess);
     if (currentChars.length !== WORD_LENGTH) {
       setToastMessage("Nicht genug Buchstaben");
       return;
     }
+
+    const currentWord = gameState.currentGuess.toUpperCase();
+    const isDuplicate = gameState.guesses.some((row) => {
+      const guessedWord = row.map((tile) => tile.letter).join("").toUpperCase();
+      return guessedWord === currentWord;
+    });
+
+    if (isDuplicate) {
+      setToastMessage("Du hast dieses Wort bereits geraten.");
+      setDuplicateError(true);
+      setTimeout(() => setDuplicateError(false), 350);
+      return;
+    }
+
     dispatch({ type: "SUBMIT_GUESS" });
-  }
+  }, [gameState.currentGuess, gameState.guesses]);
 
   // Auto-dismiss toast after 1500ms
   useEffect(() => {
@@ -111,5 +127,6 @@ export function useGame(): UseGameReturn {
     deleteLetter,
     submitGuess,
     toastMessage,
+    duplicateError,
   };
 }

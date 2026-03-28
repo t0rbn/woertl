@@ -9,7 +9,7 @@ import ResultBanner from "@/components/ResultBanner";
 import GuessInput from "@/components/GuessInput";
 
 export default function Home() {
-  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage } =
+  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, duplicateError } =
     useGame();
   const [inputError, setInputError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -73,7 +73,7 @@ export default function Home() {
             onSubmit={handleSubmitGuess}
             onError={handleError}
             disabled={isGameOver}
-            error={inputError}
+            error={inputError || duplicateError}
           />
         </div>
       </main>
