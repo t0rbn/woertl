@@ -49,12 +49,12 @@
 
 /* Smaller font for 8-column grids */
 .tileSm {
-  font-size: clamp(0.55rem, 2.5vw, 1.1rem);
+  font-size: clamp(1rem, 2.5vw, 1.1rem);
 }
 
 /* Extra-small font for 12-column grids */
 .tileXs {
-  font-size: clamp(0.4rem, 1.8vw, 0.8rem);
+  font-size: var(--font-size-caption);
 }
 
 .flip {

@@ -21,18 +21,18 @@
 }
 
 .heading {
-  font-size: 1.5rem;
+  font-size: var(--font-size-heading);
   font-weight: 700;
   margin-bottom: 8px;
 }
 
 .subtext {
-  font-size: 1rem;
+  font-size: var(--font-size-body);
   font-weight: 400;
 }
 
 .word {
-  font-size: 1.1rem;
+  font-size: var(--font-size-body);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1em;

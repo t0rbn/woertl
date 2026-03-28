@@ -41,6 +41,12 @@
   /* Typography */
   --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
 
+  /* Font-size tokens */
+  --font-size-heading: 1.6rem;
+  --font-size-body: 1.125rem;
+  --font-size-label: 1rem;
+  --font-size-caption: 1rem;
+
   /* Responsive layout tokens */
   --game-max-width: 560px;
   --game-padding: 16px;
