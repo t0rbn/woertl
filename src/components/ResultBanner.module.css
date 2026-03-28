@@ -4,7 +4,7 @@
   border: 2px solid;
   padding: 16px;
   font-family: var(--font-main);
-  max-width: 340px;
+  max-width: 100%;
   width: 100%;
 }
 
