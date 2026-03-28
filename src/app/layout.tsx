@@ -22,7 +22,9 @@ export default function RootLayout({
     <html lang="de">
       <head>
         <link rel="manifest" href="/woertl/manifest.json" />
-        <link rel="apple-touch-icon" href="/woertl/icons/icon-192.png" />
+        <link rel="icon" href="/woertl/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/svg+xml" href="/woertl/favicon.svg" />
+        <link rel="apple-touch-icon" href="/woertl/apple-touch-icon.png" />
       </head>
       <body>
         <ServiceWorkerRegistrar />
