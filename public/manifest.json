@@ -1,0 +1,35 @@
+{
+  "name": "woertl",
+  "short_name": "woertl",
+  "start_url": "/woertl/",
+  "scope": "/woertl/",
+  "display": "standalone",
+  "background_color": "#1a0033",
+  "theme_color": "#7c4dff",
+  "icons": [
+    {
+      "src": "/woertl/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/woertl/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/woertl/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/woertl/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
