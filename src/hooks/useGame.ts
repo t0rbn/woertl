@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useEffect, useState, useCallback, useRef } from "react";
+import { useReducer, useEffect, useState, useCallback, useMemo } from "react";
 import type { GameState, TileState, Level } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
 import { LEVEL_CONFIGS } from "@/lib/levelConfig";
@@ -84,26 +84,15 @@ export function useGame(level: Level = "easy"): UseGameReturn {
   const levelConfig = LEVEL_CONFIGS[level];
   const targetWord = getDailyWord(level);
 
-  // Store reducer config in a ref so we can create a stable reducer
-  const configRef = useRef<ReducerConfig>({
-    wordLength: levelConfig.wordLength,
-    maxAttempts: levelConfig.maxAttempts,
-  });
-  configRef.current = {
-    wordLength: levelConfig.wordLength,
-    maxAttempts: levelConfig.maxAttempts,
-  };
-
-  const reducerRef = useRef(makeGameReducer(configRef.current));
-  reducerRef.current = makeGameReducer(configRef.current);
-
-  const stableReducer = useCallback(
-    (state: GameState, action: Action) => reducerRef.current(state, action),
-    []
+  // Create a stable reducer from the level config; level is fixed for the
+  // lifetime of this hook instance (GameScreen unmounts when level changes).
+  const gameReducer = useMemo(
+    () => makeGameReducer({ wordLength: levelConfig.wordLength, maxAttempts: levelConfig.maxAttempts }),
+    [levelConfig.wordLength, levelConfig.maxAttempts]
   );
 
   const [gameState, dispatch] = useReducer(
-    stableReducer,
+    gameReducer,
     createInitialState(targetWord)
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);

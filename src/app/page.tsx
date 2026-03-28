@@ -79,7 +79,7 @@ function GameScreen({
 }: {
   level: Level;
   onBack: () => void;
-  onGameOver: (status: "won" | "lost") => void;
+  onGameOver: () => void;
 }) {
   const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, duplicateError } =
     useGame(level);
@@ -97,7 +97,7 @@ function GameScreen({
     if (!gameOverReported.current && gameState.status !== "playing") {
       gameOverReported.current = true;
       writeLevelStatus(level, gameState.status);
-      onGameOver(gameState.status);
+      onGameOver();
     }
   }, [gameState.status, level, onGameOver]);
 
@@ -196,17 +196,12 @@ function GameScreen({
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>("levelSelect");
   const [selectedLevel, setSelectedLevel] = useState<Level>("easy");
-  const [levelStatuses, setLevelStatuses] = useState<Record<Level, LevelStatus>>({
-    easy: "available",
-    normal: "available",
-    hard: "available",
-  });
-
-  // Load statuses from localStorage on mount (client-side only)
-  useEffect(() => {
+  // Lazily initialise from localStorage; migrateLegacyStats runs first so the
+  // read sees any migrated data without needing a subsequent setState call.
+  const [levelStatuses, setLevelStatuses] = useState<Record<Level, LevelStatus>>(() => {
     migrateLegacyStats();
-    setLevelStatuses(readAllLevelStatuses());
-  }, []);
+    return readAllLevelStatuses();
+  });
 
   function handleSelectLevel(level: Level) {
     setSelectedLevel(level);
@@ -219,7 +214,7 @@ export default function Home() {
     setLevelStatuses(readAllLevelStatuses());
   }
 
-  const handleGameOver = useCallback((_status: "won" | "lost") => {
+  const handleGameOver = useCallback(() => {
     // Refresh statuses when game ends
     setLevelStatuses(readAllLevelStatuses());
   }, []);
