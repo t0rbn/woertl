@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Committed build output – do not lint minified files:
+    "docs/**",
   ]),
 ]);
 
