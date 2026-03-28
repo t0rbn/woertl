@@ -1,3 +1,77 @@
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ===== App header (level select screen) ===== */
+.appHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 16px 10px 16px;
+  border-bottom: 1px solid var(--color-outline-muted, #4a235a);
+}
+
+.appTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  letter-spacing: 0.08em;
+}
+
+/* ===== Game screen header ===== */
+.gameHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 16px 10px 16px;
+  border-bottom: 1px solid var(--color-outline-muted, #4a235a);
+  position: relative;
+  width: 100%;
+}
+
+.gameTitle {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--color-primary);
+  letter-spacing: 0.08em;
+}
+
+.backBtn {
+  position: absolute;
+  left: 12px;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: var(--radius-key);
+  line-height: 1;
+  font-family: var(--font-main);
+  transition: color 0.15s;
+}
+
+.backBtn:hover,
+.backBtn:focus {
+  color: var(--color-text);
+  outline: 2px solid var(--color-outline);
+  outline-offset: 2px;
+}
+
+.levelBadge {
+  font-size: 0.7rem;
+  background: var(--color-surface-raised);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-outline-muted, #4a235a);
+  border-radius: 20px;
+  padding: 2px 10px;
+  margin: 10px auto 0 auto;
+  display: inline-block;
+}
+
+/* ===== Main content area ===== */
 .main {
   display: flex;
   flex: 1;
@@ -17,12 +91,6 @@
   gap: 16px;
   width: 100%;
   max-width: var(--game-max-width);
-}
-
-.pageWrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
 }
 
 @media (orientation: landscape) and (max-height: 500px) {

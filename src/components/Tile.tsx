@@ -7,6 +7,7 @@ type TileProps = {
   letter: string;
   feedback: LetterFeedback | null;
   isActiveRow: boolean;
+  sizeClass?: string;
 };
 
 function getAriaLabel(letter: string, feedback: LetterFeedback | null): string {
@@ -22,7 +23,7 @@ function getAriaLabel(letter: string, feedback: LetterFeedback | null): string {
   return feedbackLabel ? `${letter}, ${feedbackLabel}` : letter;
 }
 
-export default function Tile({ letter, feedback, isActiveRow }: TileProps) {
+export default function Tile({ letter, feedback, isActiveRow, sizeClass }: TileProps) {
   const hasFeedback = feedback !== null;
   const hasLetter = letter.length > 0;
 
@@ -34,6 +35,10 @@ export default function Tile({ letter, feedback, isActiveRow }: TileProps) {
     className += hasLetter ? ` ${styles.activeFilled}` : ` ${styles.activeEmpty}`;
   } else if (hasLetter) {
     className += ` ${styles.filledNoFeedback}`;
+  }
+
+  if (sizeClass) {
+    className += ` ${sizeClass}`;
   }
 
   return (

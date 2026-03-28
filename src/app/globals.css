@@ -51,6 +51,14 @@
   --radius-card: 12px;
   --radius-key: 4px;
 
+  /* Level icon background tokens */
+  --color-level-easy-bg: #1b4d1e;
+  --color-level-easy-fg: var(--color-correct);
+  --color-level-normal-bg: #3d2000;
+  --color-level-normal-fg: var(--color-present);
+  --color-level-hard-bg: #3a0010;
+  --color-level-hard-fg: #f48fb1;
+
   /* Animation duration – set to 0s via prefers-reduced-motion */
   --animation-duration: 500ms;
 }

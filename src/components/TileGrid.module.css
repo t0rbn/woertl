@@ -7,7 +7,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(var(--col-count, 5), 1fr);
   gap: var(--tile-gap, 6px);
 }
 
@@ -17,7 +17,7 @@
   }
 
   .row {
-    gap: 4px;
+    gap: 3px;
   }
 }
 

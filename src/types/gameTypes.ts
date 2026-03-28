@@ -16,3 +16,12 @@ export type GameState = {
 };
 
 export type KeyState = Record<string, LetterFeedback | "unused">;
+
+export type Level = "easy" | "normal" | "hard";
+
+export type LevelConfig = {
+  wordLength: number;
+  maxAttempts: number;
+  label: string;
+  statsKey: string;
+};

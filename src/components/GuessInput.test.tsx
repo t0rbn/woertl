@@ -13,6 +13,7 @@ function renderInput(overrides: Partial<React.ComponentProps<typeof GuessInput>>
     onError: vi.fn(),
     disabled: false,
     error: false,
+    wordLength: 5,
     ...overrides,
   };
   render(<GuessInput ref={ref} {...props} />);
@@ -121,6 +122,24 @@ describe("GuessInput", () => {
   it("submit button is disabled when disabled prop is true", () => {
     renderInput({ disabled: true });
     expect(screen.getByRole("button", { name: "Eingabe" })).toBeDisabled();
+  });
+
+  it("accepts up to wordLength characters when wordLength is 8", () => {
+    const onLetterInput = vi.fn();
+    renderInput({ value: "SCHULBUC", wordLength: 8, onLetterInput });
+    const input = screen.getByLabelText("Ratewort eingeben");
+    // With 8 chars already, adding more should not call onLetterInput
+    fireEvent.keyDown(input, { key: "h" });
+    expect(onLetterInput).not.toHaveBeenCalled();
+  });
+
+  it("calls onSubmit when wordLength is 8 and value has 8 characters", () => {
+    const onSubmit = vi.fn();
+    renderInput({ value: "SCHULBUC", wordLength: 8, onSubmit });
+    const input = screen.getByLabelText("Ratewort eingeben");
+    // Wait, we need exactly 8 chars - SCHULBUC is 8
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(onSubmit).toHaveBeenCalled();
   });
 
   it("shows error message when error prop is true", () => {
