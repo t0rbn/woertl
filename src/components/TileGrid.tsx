@@ -4,15 +4,14 @@ import type { TileState, GameStatus } from "@/types/gameTypes";
 import Tile from "./Tile";
 import styles from "./TileGrid.module.css";
 
-const TOTAL_ROWS = 6;
-const WORD_LENGTH = 5;
-
 type TileGridProps = {
   guesses: TileState[][];
   currentGuess: string;
   currentRow: number;
   status: GameStatus;
   shakeRow: boolean;
+  wordLength?: number;
+  totalRows?: number;
 };
 
 function getAriaAnnouncement(row: TileState[]): string {
@@ -35,6 +34,8 @@ export default function TileGrid({
   currentRow,
   status,
   shakeRow,
+  wordLength = 5,
+  totalRows = 6,
 }: TileGridProps) {
   const lastSubmittedRow = guesses.length > 0 ? guesses[guesses.length - 1] : null;
   const liveAnnouncement = lastSubmittedRow ? getAriaAnnouncement(lastSubmittedRow) : "";
@@ -50,7 +51,7 @@ export default function TileGrid({
       >
         {liveAnnouncement}
       </div>
-      {Array.from({ length: TOTAL_ROWS }, (_, rowIndex) => {
+      {Array.from({ length: totalRows }, (_, rowIndex) => {
         const isSubmittedRow = rowIndex < guesses.length;
         const isActiveRow = rowIndex === currentRow && status === "playing";
 
@@ -63,9 +64,21 @@ export default function TileGrid({
           rowClassName += ` ${styles.bounce}`;
         }
 
+        // Determine font-size modifier class based on word length
+        let tileSizeClass = "";
+        if (wordLength >= 12) {
+          tileSizeClass = styles.tileXs ?? "";
+        } else if (wordLength >= 8) {
+          tileSizeClass = styles.tileSm ?? "";
+        }
+
         return (
-          <div key={rowIndex} className={rowClassName}>
-            {Array.from({ length: WORD_LENGTH }, (_, colIndex) => {
+          <div
+            key={rowIndex}
+            className={rowClassName}
+            style={{ "--col-count": wordLength } as React.CSSProperties}
+          >
+            {Array.from({ length: wordLength }, (_, colIndex) => {
               if (isSubmittedRow) {
                 const tile = guesses[rowIndex]?.[colIndex] ?? { letter: "", feedback: null };
                 return (
@@ -74,6 +87,7 @@ export default function TileGrid({
                     letter={tile.letter}
                     feedback={tile.feedback}
                     isActiveRow={false}
+                    sizeClass={tileSizeClass}
                   />
                 );
               } else if (isActiveRow) {
@@ -84,6 +98,7 @@ export default function TileGrid({
                     letter={letter}
                     feedback={null}
                     isActiveRow={true}
+                    sizeClass={tileSizeClass}
                   />
                 );
               } else {
@@ -93,6 +108,7 @@ export default function TileGrid({
                     letter=""
                     feedback={null}
                     isActiveRow={false}
+                    sizeClass={tileSizeClass}
                   />
                 );
               }

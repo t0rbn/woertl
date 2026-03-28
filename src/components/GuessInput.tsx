@@ -11,6 +11,7 @@ type GuessInputProps = {
   onError: () => void;
   disabled: boolean;
   error: boolean;
+  wordLength?: number;
 };
 
 // Valid German letters including umlauts
@@ -18,7 +19,7 @@ const VALID_LETTER_REGEX = /^[a-zA-ZäöüÄÖÜß]$/;
 
 const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
   function GuessInput(
-    { value, onLetterInput, onDelete, onSubmit, onError, disabled, error },
+    { value, onLetterInput, onDelete, onSubmit, onError, disabled, error, wordLength = 5 },
     ref
   ) {
     // Auto-focus on mount
@@ -37,7 +38,7 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       if (disabled) return;
 
       if (e.key === "Enter") {
-        if (value.length === 5) {
+        if (value.length === wordLength) {
           onSubmit();
         } else {
           onError();
@@ -52,7 +53,7 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       }
 
       if (e.key.length === 1 && VALID_LETTER_REGEX.test(e.key)) {
-        if (value.length < 5) {
+        if (value.length < wordLength) {
           onLetterInput(e.key.toUpperCase());
         }
         e.preventDefault();
@@ -63,7 +64,7 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       e.preventDefault();
     }
 
-    const isFull = value.length === 5;
+    const isFull = value.length === wordLength;
 
     function handleButtonClick() {
       if (disabled) return;
@@ -83,7 +84,7 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          maxLength={5}
+          maxLength={wordLength}
           disabled={disabled}
           autoFocus
           autoComplete="off"

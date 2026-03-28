@@ -1,15 +1,44 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Home from "./page";
 
+// Mock dailyWord to return predictable words
+vi.mock("@/lib/dailyWord", () => ({
+  getDailyWord: (level: string) => {
+    if (level === "easy") return "TANTE";
+    if (level === "normal") return "SCHULBCH"; // 8 letters placeholder
+    if (level === "hard") return "ZUSAMMENABT"; // 11 letters placeholder
+    return "TANTE";
+  },
+}));
+
+// Helper: navigate to game screen by clicking Easy level card
+function selectEasyLevel() {
+  fireEvent.click(screen.getByRole("button", { name: /Einfach/i }));
+}
+
 describe("Home page – integration", () => {
-  it("does not render a header element", () => {
+  it("renders the level selection screen on load", () => {
     render(<Home />);
-    expect(document.querySelector("header")).toBeNull();
+    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
   });
 
-  it("renders the game grid (30 tiles)", () => {
+  it("renders three level cards on the level selection screen", () => {
     render(<Home />);
+    expect(screen.getByRole("button", { name: /Einfach/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Normal/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Schwer/i })).toBeInTheDocument();
+  });
+
+  it("navigates to game screen when a level is selected", () => {
+    render(<Home />);
+    selectEasyLevel();
+    expect(screen.getByLabelText("Spielfeld")).toBeInTheDocument();
+  });
+
+  it("renders the game grid (30 tiles) after selecting easy level", () => {
+    render(<Home />);
+    selectEasyLevel();
     // 6 rows x 5 tiles = 30 tiles; query within the grid container
     const grid = screen.getByLabelText("Spielfeld");
     // Every tile is a div inside the grid
@@ -19,14 +48,16 @@ describe("Home page – integration", () => {
     expect(tiles).toHaveLength(30);
   });
 
-  it("renders the text input instead of keyboard", () => {
+  it("renders the text input after selecting a level", () => {
     render(<Home />);
+    selectEasyLevel();
     expect(screen.getByLabelText("Ratewort eingeben")).toBeInTheDocument();
     expect(screen.queryByLabelText("Tastatur")).not.toBeInTheDocument();
   });
 
   it("shows toast when submitting fewer than 5 letters", async () => {
     render(<Home />);
+    selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
     fireEvent.keyDown(input, { key: "t" });
     fireEvent.keyDown(input, { key: "a" });
@@ -38,6 +69,7 @@ describe("Home page – integration", () => {
 
   it("submits a full guess via input and shows feedback tiles", async () => {
     render(<Home />);
+    selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
     // Type BROTE (wrong guess)
     fireEvent.keyDown(input, { key: "b" });
@@ -57,6 +89,7 @@ describe("Home page – integration", () => {
 
   it("wins the game when guessing TANTE", async () => {
     render(<Home />);
+    selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
     const letters = ["t", "a", "n", "t", "e"];
     letters.forEach((key) => fireEvent.keyDown(input, { key }));
@@ -67,6 +100,7 @@ describe("Home page – integration", () => {
 
   it("input is disabled after winning", async () => {
     render(<Home />);
+    selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
     const letters = ["t", "a", "n", "t", "e"];
     letters.forEach((key) => fireEvent.keyDown(input, { key }));
@@ -79,6 +113,7 @@ describe("Home page – integration", () => {
 
   it("loses after 6 wrong guesses and shows lost banner with target word", async () => {
     render(<Home />);
+    selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
     // Use 6 different 5-letter words to avoid triggering duplicate validation
     const wrongGuesses = [
@@ -96,5 +131,14 @@ describe("Home page – integration", () => {
 
     expect(await screen.findByText("Leider verloren!")).toBeInTheDocument();
     expect(screen.getByText("TANTE")).toBeInTheDocument();
+  });
+
+  it("back button returns to level selection screen", async () => {
+    render(<Home />);
+    selectEasyLevel();
+    expect(screen.getByLabelText("Spielfeld")).toBeInTheDocument();
+    const backBtn = screen.getByRole("button", { name: /Zurück zur Levelauswahl/ });
+    fireEvent.click(backBtn);
+    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
   });
 });

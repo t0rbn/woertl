@@ -6,7 +6,7 @@ import type { TileState } from "@/types/gameTypes";
 const emptyGuesses: TileState[][] = [];
 
 describe("TileGrid", () => {
-  it("renders 30 tiles total (6 rows x 5 columns)", () => {
+  it("renders 30 tiles total (6 rows x 5 columns) by default", () => {
     render(
       <TileGrid
         guesses={emptyGuesses}
@@ -19,6 +19,38 @@ describe("TileGrid", () => {
     // Each tile has an aria-label, count "leer" tiles
     const tiles = screen.getAllByLabelText(/leer|richtig|vorhanden|nicht im Wort|^[A-ZÄÖÜ]$/);
     expect(tiles).toHaveLength(30);
+  });
+
+  it("renders correct tile count for 8-column normal level (7 rows x 8 columns)", () => {
+    render(
+      <TileGrid
+        guesses={emptyGuesses}
+        currentGuess=""
+        currentRow={0}
+        status="playing"
+        shakeRow={false}
+        wordLength={8}
+        totalRows={7}
+      />
+    );
+    const tiles = screen.getAllByLabelText(/leer|richtig|vorhanden|nicht im Wort|^[A-ZÄÖÜ]$/);
+    expect(tiles).toHaveLength(56); // 7 * 8
+  });
+
+  it("renders correct tile count for 12-column hard level (8 rows x 12 columns)", () => {
+    render(
+      <TileGrid
+        guesses={emptyGuesses}
+        currentGuess=""
+        currentRow={0}
+        status="playing"
+        shakeRow={false}
+        wordLength={12}
+        totalRows={8}
+      />
+    );
+    const tiles = screen.getAllByLabelText(/leer|richtig|vorhanden|nicht im Wort|^[A-ZÄÖÜ]$/);
+    expect(tiles).toHaveLength(96); // 8 * 12
   });
 
   it("renders submitted row with feedback", () => {

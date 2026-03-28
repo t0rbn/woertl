@@ -1,10 +1,30 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 import { useGame } from "./useGame";
 
+// Mock dailyWord to return predictable words per level
+vi.mock("@/lib/dailyWord", () => ({
+  getDailyWord: (level: string) => {
+    if (level === "easy") return "TANTE";
+    if (level === "normal") return "SCHULBUCH"; // 8 letters
+    if (level === "hard") return "ZUSAMMENARBEIT"; // 14 letters - won't match, use fallback
+    return "TANTE";
+  },
+}));
+
+// Mock word lists so we don't rely on real data files
+vi.mock("@/lib/wordList", () => ({
+  getWordList: (level: string) => {
+    if (level === "easy") return ["TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL"];
+    if (level === "normal") return ["SCHULBUCH", "ABENDROT", "COMPUTER", "DIAGNOSE", "BIOLOGIE"];
+    if (level === "hard") return ["ZUSAMMENARBEIT", "ABENDSTUNDEN", "ALLGEMEINGUT"];
+    return ["TANTE"];
+  },
+}));
+
 describe("useGame", () => {
   it("initializes with correct initial state", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     expect(result.current.gameState.status).toBe("playing");
     expect(result.current.gameState.currentGuess).toBe("");
     expect(result.current.gameState.guesses).toHaveLength(0);
@@ -12,22 +32,22 @@ describe("useGame", () => {
   });
 
   it("adds letters to currentGuess", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     act(() => result.current.addLetter("T"));
     act(() => result.current.addLetter("A"));
     expect(result.current.gameState.currentGuess).toBe("TA");
   });
 
   it("deletes last letter from currentGuess", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     act(() => result.current.addLetter("T"));
     act(() => result.current.addLetter("A"));
     act(() => result.current.deleteLetter());
     expect(result.current.gameState.currentGuess).toBe("T");
   });
 
-  it("does not add letter beyond word length (5)", () => {
-    const { result } = renderHook(() => useGame());
+  it("does not add letter beyond word length (5 for easy)", () => {
+    const { result } = renderHook(() => useGame("easy"));
     act(() => {
       result.current.addLetter("T");
       result.current.addLetter("A");
@@ -39,8 +59,18 @@ describe("useGame", () => {
     expect(Array.from(result.current.gameState.currentGuess)).toHaveLength(5);
   });
 
+  it("does not add letter beyond word length (8 for normal)", () => {
+    const { result } = renderHook(() => useGame("normal"));
+    act(() => {
+      for (const ch of "SCHULBUCHX") {
+        result.current.addLetter(ch);
+      }
+    });
+    expect(Array.from(result.current.gameState.currentGuess)).toHaveLength(8);
+  });
+
   it("shows toast for too-short submission", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     act(() => {
       result.current.addLetter("T");
       result.current.submitGuess();
@@ -50,7 +80,7 @@ describe("useGame", () => {
   });
 
   it("submits a valid guess and adds to guesses", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     act(() => result.current.addLetter("B"));
     act(() => result.current.addLetter("R"));
     act(() => result.current.addLetter("O"));
@@ -62,8 +92,8 @@ describe("useGame", () => {
     expect(result.current.gameState.attemptCount).toBe(1);
   });
 
-  it("wins when guessing the correct word", () => {
-    const { result } = renderHook(() => useGame());
+  it("wins when guessing the correct word (easy)", () => {
+    const { result } = renderHook(() => useGame("easy"));
     act(() => result.current.addLetter("T"));
     act(() => result.current.addLetter("A"));
     act(() => result.current.addLetter("N"));
@@ -73,8 +103,17 @@ describe("useGame", () => {
     expect(result.current.gameState.status).toBe("won");
   });
 
-  it("loses after 6 failed attempts", () => {
-    const { result } = renderHook(() => useGame());
+  it("wins when guessing the correct word (normal, 8 letters)", () => {
+    const { result } = renderHook(() => useGame("normal"));
+    for (const ch of "SCHULBUCH") {
+      act(() => result.current.addLetter(ch));
+    }
+    act(() => result.current.submitGuess());
+    expect(result.current.gameState.status).toBe("won");
+  });
+
+  it("loses after max attempts (easy: 6 attempts)", () => {
+    const { result } = renderHook(() => useGame("easy"));
     // Use 6 different 5-letter words to avoid triggering duplicate validation
     const wrongGuesses = [
       ["B", "R", "O", "T", "E"],
@@ -93,7 +132,7 @@ describe("useGame", () => {
   });
 
   it("does not accept input after game is won", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     act(() => result.current.addLetter("T"));
     act(() => result.current.addLetter("A"));
     act(() => result.current.addLetter("N"));
@@ -106,8 +145,8 @@ describe("useGame", () => {
   });
 
   it("shows toast 'Du hast dieses Wort bereits geraten.' when submitting the same word twice", () => {
-    const { result } = renderHook(() => useGame());
-    // First submission - add letters individually then submit
+    const { result } = renderHook(() => useGame("easy"));
+    // First submission
     act(() => result.current.addLetter("B"));
     act(() => result.current.addLetter("R"));
     act(() => result.current.addLetter("O"));
@@ -126,7 +165,7 @@ describe("useGame", () => {
   });
 
   it("does not increment attemptCount or add a new row when submitting a duplicate", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     // First submission
     act(() => result.current.addLetter("B"));
     act(() => result.current.addLetter("R"));
@@ -148,7 +187,7 @@ describe("useGame", () => {
   });
 
   it("preserves currentGuess after a duplicate submission", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     // First submission
     act(() => result.current.addLetter("B"));
     act(() => result.current.addLetter("R"));
@@ -169,7 +208,7 @@ describe("useGame", () => {
   });
 
   it("duplicate check is case-insensitive", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     // First submission uppercase
     act(() => result.current.addLetter("B"));
     act(() => result.current.addLetter("R"));
@@ -190,7 +229,7 @@ describe("useGame", () => {
   });
 
   it("sets duplicateError to true on a duplicate submission", () => {
-    const { result } = renderHook(() => useGame());
+    const { result } = renderHook(() => useGame("easy"));
     // First submission
     act(() => result.current.addLetter("B"));
     act(() => result.current.addLetter("R"));

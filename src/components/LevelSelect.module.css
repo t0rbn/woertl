@@ -1,0 +1,169 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.heading {
+  font-size: 1rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: 24px;
+  font-weight: normal;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.card {
+  background: var(--color-surface);
+  border: 2px solid var(--color-outline-muted, #4a235a);
+  border-radius: var(--radius-card);
+  padding: 16px 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: border-color 0.15s;
+  position: relative;
+  user-select: none;
+}
+
+.card:hover,
+.card:focus {
+  border-color: var(--color-outline);
+  outline: none;
+}
+
+.cardCompleted {
+  border-color: var(--color-correct);
+  opacity: 0.85;
+}
+
+.cardLost {
+  border-color: var(--color-level-hard-fg);
+  opacity: 0.9;
+}
+
+.icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.iconEasy {
+  background: var(--color-level-easy-bg);
+  color: var(--color-level-easy-fg);
+}
+
+.iconNormal {
+  background: var(--color-level-normal-bg);
+  color: var(--color-level-normal-fg);
+}
+
+.iconHard {
+  background: var(--color-level-hard-bg);
+  color: var(--color-level-hard-fg);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.levelName {
+  font-size: 1.05rem;
+  font-weight: bold;
+  color: var(--color-text);
+  margin-bottom: 3px;
+}
+
+.levelDesc {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+  margin-bottom: 6px;
+}
+
+.tilePreview {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.miniTile {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1px solid var(--color-outline-muted, #4a235a);
+  background: var(--color-surface-raised);
+  flex-shrink: 0;
+}
+
+.badge {
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: bold;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.badgeAvailable {
+  background: var(--color-surface-raised);
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-outline-muted, #4a235a);
+}
+
+.badgeWon {
+  background: var(--color-level-easy-bg);
+  color: var(--color-level-easy-fg);
+  border: 1px solid var(--color-correct);
+}
+
+.badgeLost {
+  background: var(--color-level-hard-bg);
+  color: var(--color-level-hard-fg);
+  border: 1px solid var(--color-level-hard-fg);
+}
+
+.completedOverlay {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 1rem;
+  color: var(--color-correct);
+}
+
+@media (max-width: 360px) {
+  .card {
+    padding: 12px 12px;
+    gap: 10px;
+  }
+
+  .icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  .levelName {
+    font-size: 0.95rem;
+  }
+
+  .miniTile {
+    width: 10px;
+    height: 10px;
+  }
+}

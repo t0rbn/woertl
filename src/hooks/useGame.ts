@@ -1,21 +1,24 @@
 "use client";
 
-import { useReducer, useEffect, useState, useCallback } from "react";
-import type { GameState, TileState } from "@/types/gameTypes";
+import { useReducer, useEffect, useState, useCallback, useRef } from "react";
+import type { GameState, TileState, Level } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
-
-const TARGET_WORD = "TANTE";
-const MAX_ATTEMPTS = 6;
-const WORD_LENGTH = 5;
+import { LEVEL_CONFIGS } from "@/lib/levelConfig";
+import { getDailyWord } from "@/lib/dailyWord";
 
 type Action =
   | { type: "ADD_LETTER"; letter: string }
   | { type: "DELETE_LETTER" }
   | { type: "SUBMIT_GUESS" };
 
-function createInitialState(): GameState {
+type ReducerConfig = {
+  wordLength: number;
+  maxAttempts: number;
+};
+
+function createInitialState(targetWord: string): GameState {
   return {
-    targetWord: TARGET_WORD,
+    targetWord,
     guesses: [],
     currentGuess: "",
     status: "playing",
@@ -23,50 +26,49 @@ function createInitialState(): GameState {
   };
 }
 
-function gameReducer(
-  state: GameState,
-  action: Action
-): GameState {
-  if (state.status !== "playing") return state;
+function makeGameReducer(config: ReducerConfig) {
+  return function gameReducer(state: GameState, action: Action): GameState {
+    if (state.status !== "playing") return state;
 
-  switch (action.type) {
-    case "ADD_LETTER": {
-      const currentChars = Array.from(state.currentGuess);
-      if (currentChars.length >= WORD_LENGTH) return state;
-      return { ...state, currentGuess: state.currentGuess + action.letter };
+    switch (action.type) {
+      case "ADD_LETTER": {
+        const currentChars = Array.from(state.currentGuess);
+        if (currentChars.length >= config.wordLength) return state;
+        return { ...state, currentGuess: state.currentGuess + action.letter };
+      }
+      case "DELETE_LETTER": {
+        const chars = Array.from(state.currentGuess);
+        if (chars.length === 0) return state;
+        return { ...state, currentGuess: chars.slice(0, -1).join("") };
+      }
+      case "SUBMIT_GUESS": {
+        const currentChars = Array.from(state.currentGuess);
+        if (currentChars.length !== config.wordLength) return state;
+
+        const feedbacks = calculateFeedback(state.currentGuess, state.targetWord);
+        const newRow: TileState[] = currentChars.map((letter, i) => ({
+          letter,
+          feedback: feedbacks[i] ?? "absent",
+        }));
+
+        const newGuesses = [...state.guesses, newRow];
+        const newAttemptCount = state.attemptCount + 1;
+
+        const isWin = feedbacks.every((f) => f === "correct");
+        const isLoss = !isWin && newAttemptCount >= config.maxAttempts;
+
+        return {
+          ...state,
+          guesses: newGuesses,
+          currentGuess: "",
+          attemptCount: newAttemptCount,
+          status: isWin ? "won" : isLoss ? "lost" : "playing",
+        };
+      }
+      default:
+        return state;
     }
-    case "DELETE_LETTER": {
-      const chars = Array.from(state.currentGuess);
-      if (chars.length === 0) return state;
-      return { ...state, currentGuess: chars.slice(0, -1).join("") };
-    }
-    case "SUBMIT_GUESS": {
-      const currentChars = Array.from(state.currentGuess);
-      if (currentChars.length !== WORD_LENGTH) return state;
-
-      const feedbacks = calculateFeedback(state.currentGuess, state.targetWord);
-      const newRow: TileState[] = currentChars.map((letter, i) => ({
-        letter,
-        feedback: feedbacks[i] ?? "absent",
-      }));
-
-      const newGuesses = [...state.guesses, newRow];
-      const newAttemptCount = state.attemptCount + 1;
-
-      const isWin = feedbacks.every((f) => f === "correct");
-      const isLoss = !isWin && newAttemptCount >= MAX_ATTEMPTS;
-
-      return {
-        ...state,
-        guesses: newGuesses,
-        currentGuess: "",
-        attemptCount: newAttemptCount,
-        status: isWin ? "won" : isLoss ? "lost" : "playing",
-      };
-    }
-    default:
-      return state;
-  }
+  };
 }
 
 export type UseGameReturn = {
@@ -78,8 +80,32 @@ export type UseGameReturn = {
   duplicateError: boolean;
 };
 
-export function useGame(): UseGameReturn {
-  const [gameState, dispatch] = useReducer(gameReducer, createInitialState());
+export function useGame(level: Level = "easy"): UseGameReturn {
+  const levelConfig = LEVEL_CONFIGS[level];
+  const targetWord = getDailyWord(level);
+
+  // Store reducer config in a ref so we can create a stable reducer
+  const configRef = useRef<ReducerConfig>({
+    wordLength: levelConfig.wordLength,
+    maxAttempts: levelConfig.maxAttempts,
+  });
+  configRef.current = {
+    wordLength: levelConfig.wordLength,
+    maxAttempts: levelConfig.maxAttempts,
+  };
+
+  const reducerRef = useRef(makeGameReducer(configRef.current));
+  reducerRef.current = makeGameReducer(configRef.current);
+
+  const stableReducer = useCallback(
+    (state: GameState, action: Action) => reducerRef.current(state, action),
+    []
+  );
+
+  const [gameState, dispatch] = useReducer(
+    stableReducer,
+    createInitialState(targetWord)
+  );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [duplicateError, setDuplicateError] = useState(false);
 
@@ -93,7 +119,7 @@ export function useGame(): UseGameReturn {
 
   const submitGuess = useCallback(() => {
     const currentChars = Array.from(gameState.currentGuess);
-    if (currentChars.length !== WORD_LENGTH) {
+    if (currentChars.length !== levelConfig.wordLength) {
       setToastMessage("Nicht genug Buchstaben");
       return;
     }
@@ -112,7 +138,7 @@ export function useGame(): UseGameReturn {
     }
 
     dispatch({ type: "SUBMIT_GUESS" });
-  }, [gameState.currentGuess, gameState.guesses]);
+  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength]);
 
   // Auto-dismiss toast after 1500ms
   useEffect(() => {
