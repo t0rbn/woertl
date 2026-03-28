@@ -25,7 +25,7 @@ function readLevelStatus(level: Level): LevelStatus {
   if (typeof window === "undefined") return "available";
   try {
     const key = `game_${level}_${getTodayKey()}`;
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(key);
     if (!raw) return "available";
     const data = JSON.parse(raw) as { status?: string };
     if (data.status === "won") return "won";
@@ -40,7 +40,7 @@ function writeLevelStatus(level: Level, status: "won" | "lost"): void {
   if (typeof window === "undefined") return;
   try {
     const key = `game_${level}_${getTodayKey()}`;
-    localStorage.setItem(key, JSON.stringify({ status }));
+    sessionStorage.setItem(key, JSON.stringify({ status }));
   } catch {
     // ignore
   }
@@ -54,21 +54,6 @@ function readAllLevelStatuses(): Record<Level, LevelStatus> {
   };
 }
 
-/** Migrate legacy single-key stats to stats_easy on first load */
-function migrateLegacyStats(): void {
-  if (typeof window === "undefined") return;
-  try {
-    const migrationDone = localStorage.getItem("stats_migration_v1");
-    if (migrationDone) return;
-    const legacyStats = localStorage.getItem("stats");
-    if (legacyStats && !localStorage.getItem("stats_easy")) {
-      localStorage.setItem("stats_easy", legacyStats);
-    }
-    localStorage.setItem("stats_migration_v1", "done");
-  } catch {
-    // ignore
-  }
-}
 
 type View = "levelSelect" | "game";
 
@@ -196,10 +181,8 @@ function GameScreen({
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>("levelSelect");
   const [selectedLevel, setSelectedLevel] = useState<Level>("easy");
-  // Lazily initialise from localStorage; migrateLegacyStats runs first so the
-  // read sees any migrated data without needing a subsequent setState call.
+  // Lazily initialise from sessionStorage. Game state is not persisted across page reloads.
   const [levelStatuses, setLevelStatuses] = useState<Record<Level, LevelStatus>>(() => {
-    migrateLegacyStats();
     return readAllLevelStatuses();
   });
 
