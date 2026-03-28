@@ -24,9 +24,9 @@
   --color-outline: #7c4dff;
   --color-primary: #ce93d8;
   --color-primary-dark: #7c4dff;
-  --color-correct: #4caf50;
-  --color-present: #ff9800;
-  --color-absent: #424242;
+  --color-correct: #3a8c5c;
+  --color-present: #c07a1e;
+  --color-absent: #4a2d6b;
   --color-unused: #3d007a;
   --color-text: #f3e5f5;
   --color-text-secondary: #ce93d8;
@@ -34,8 +34,9 @@
   --color-error: #ef5350;
 
   /* Color-blind palette (Okabe-Ito) */
-  --color-cb-correct: #0072B2;
-  --color-cb-present: #E69F00;
+  --color-cb-correct: #2d6fa8;
+  --color-cb-present: #b88a00;
+  --color-cb-absent: #4a2d6b;
 
   /* Typography */
   --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
@@ -46,7 +47,7 @@
   --tile-gap: 6px;
 
   /* Border radii */
-  --radius-tile: 4px;
+  --radius-tile: 10px;
   --radius-card: 12px;
   --radius-key: 4px;
 
