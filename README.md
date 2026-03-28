@@ -1,3 +1,9 @@
+> **Notice: Agentic Development Sandbox**
+>
+> This repository is a sandbox playground for experimenting with agentic development workflows. All application code in this project has been authored entirely by AI agents. No human has written, manually reviewed, or audited any of the code for correctness, security, or quality. Use or study this codebase with that context in mind.
+
+---
+
 # wörtl
 
 Das deutsche Wordle – errate das Wort in sechs Versuchen.
