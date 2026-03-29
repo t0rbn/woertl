@@ -22,6 +22,7 @@
   padding: 10px 16px;
   outline: none;
   transition: border-color 150ms ease, box-shadow 150ms ease;
+  scroll-margin-bottom: 16px;
 }
 
 .input::placeholder {
@@ -63,6 +64,13 @@
   font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
   text-align: center;
+}
+
+/* Hide keyboard hint on touch-only devices since the virtual keyboard provides its own keys */
+@media (hover: none) {
+  .hint {
+    display: none;
+  }
 }
 
 @keyframes shake {

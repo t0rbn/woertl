@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useEffect } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import styles from "./GuessInput.module.css";
 
 type GuessInputProps = {
@@ -22,6 +22,9 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
     { value, onLetterInput, onDelete, onSubmit, onError, disabled, error, wordLength = 5 },
     ref
   ) {
+    // Track whether the most recent input came from keyDown so onChange can skip it
+    const keyHandledRef = useRef(false);
+
     // Auto-focus on mount
     useEffect(() => {
       if (ref && "current" in ref && ref.current) {
@@ -30,14 +33,46 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
     }, [ref]);
 
     function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-      // We handle input via onKeyDown; reset input to controlled value
-      e.preventDefault();
+      // If the keystroke was already fully handled by handleKeyDown, skip processing here
+      if (keyHandledRef.current) {
+        keyHandledRef.current = false;
+        return;
+      }
+
+      if (disabled) return;
+
+      const newValue = e.target.value;
+      const oldValue = value;
+
+      // Detect deletion: new value is shorter than old value
+      if (newValue.length < oldValue.length) {
+        onDelete();
+        return;
+      }
+
+      // Detect addition: new value is longer (one or more characters added)
+      if (newValue.length > oldValue.length) {
+        // Process each newly added character
+        const addedPart = newValue.slice(oldValue.length);
+        for (const char of addedPart) {
+          if (VALID_LETTER_REGEX.test(char) && value.length < wordLength) {
+            onLetterInput(char.toUpperCase());
+          }
+        }
+        return;
+      }
+
+      // If lengths are equal, no actionable change (e.g. composition events)
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
       if (disabled) return;
 
+      // Skip if this is a composing event (IME input) — let onChange handle it
+      if (e.nativeEvent.isComposing) return;
+
       if (e.key === "Enter") {
+        keyHandledRef.current = true;
         if (value.length === wordLength) {
           onSubmit();
         } else {
@@ -47,12 +82,14 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       }
 
       if (e.key === "Backspace") {
+        keyHandledRef.current = true;
         onDelete();
         e.preventDefault();
         return;
       }
 
       if (e.key.length === 1 && VALID_LETTER_REGEX.test(e.key)) {
+        keyHandledRef.current = true;
         if (value.length < wordLength) {
           onLetterInput(e.key.toUpperCase());
         }
@@ -60,8 +97,11 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
         return;
       }
 
-      // Block all other keys
-      e.preventDefault();
+      // Block all other keys that would produce output
+      if (e.key.length === 1) {
+        keyHandledRef.current = true;
+        e.preventDefault();
+      }
     }
 
     const isFull = value.length === wordLength;
@@ -75,15 +115,23 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       }
     }
 
+    function handleFocus() {
+      if (ref && "current" in ref && ref.current) {
+        ref.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    }
+
     return (
       <div className={styles.wrapper}>
         <input
           ref={ref}
           type="text"
+          inputMode="text"
           className={`${styles.input} ${isFull ? styles.full : ""} ${error ? styles.error : ""}`}
           value={value}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onFocus={handleFocus}
           maxLength={wordLength}
           disabled={disabled}
           autoFocus
