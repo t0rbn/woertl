@@ -29,7 +29,7 @@
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
-  font-size: 1rem;
+  font-size: var(--font-size-body);
 }
 
 .input:focus {
@@ -60,7 +60,7 @@
 
 .hint {
   font-family: var(--font-main);
-  font-size: 0.75rem;
+  font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
   text-align: center;
 }
@@ -86,7 +86,7 @@
   border: none;
   border-radius: 8px;
   font-family: var(--font-main);
-  font-size: 1rem;
+  font-size: var(--font-size-body);
   cursor: pointer;
   letter-spacing: 0.04em;
   transition: box-shadow 150ms ease, background 150ms ease;
@@ -104,7 +104,7 @@
 
 .errorMsg {
   font-family: var(--font-main);
-  font-size: 0.7rem;
+  font-size: var(--font-size-caption);
   color: var(--color-error);
   text-align: center;
   min-height: 1em;

@@ -54,7 +54,6 @@ function readAllLevelStatuses(): Record<Level, LevelStatus> {
   };
 }
 
-
 type View = "levelSelect" | "game";
 
 function GameScreen({

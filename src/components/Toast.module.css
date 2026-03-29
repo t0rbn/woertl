@@ -8,7 +8,7 @@
   border-radius: 20px;
   padding: 10px 20px;
   font-family: var(--font-main);
-  font-size: 0.95rem;
+  font-size: var(--font-size-label);
   font-weight: 600;
   z-index: 100;
   pointer-events: none;
