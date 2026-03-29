@@ -6,8 +6,8 @@ import { useGame } from "./useGame";
 vi.mock("@/lib/dailyWord", () => ({
   getDailyWord: (level: string) => {
     if (level === "easy") return "TANTE";
-    if (level === "normal") return "SCHULBUCH"; // 8 letters
-    if (level === "hard") return "ZUSAMMENARBEIT"; // 14 letters - won't match, use fallback
+    if (level === "normal") return "ABENDROT"; // 8 letters
+    if (level === "hard") return "ABENDSTUNDEN"; // 12 letters
     return "TANTE";
   },
 }));
@@ -15,10 +15,20 @@ vi.mock("@/lib/dailyWord", () => ({
 // Mock word lists so we don't rely on real data files
 vi.mock("@/lib/wordList", () => ({
   getWordList: (level: string) => {
-    if (level === "easy") return ["TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL"];
-    if (level === "normal") return ["SCHULBUCH", "ABENDROT", "COMPUTER", "DIAGNOSE", "BIOLOGIE"];
-    if (level === "hard") return ["ZUSAMMENARBEIT", "ABENDSTUNDEN", "ALLGEMEINGUT"];
+    if (level === "easy") return ["TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL", "MUSIK"];
+    if (level === "normal") return ["ABENDROT", "SCHULBUCH", "COMPUTER", "DIAGNOSE", "BIOLOGIE"];
+    if (level === "hard") return ["ABENDSTUNDEN", "ZUSAMMENARBEIT", "ALLGEMEINGUT"];
     return ["TANTE"];
+  },
+  isWordInList: (word: string, level: string) => {
+    const lists: Record<string, string[]> = {
+      easy: ["TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL", "MUSIK"],
+      normal: ["ABENDROT", "SCHULBUCH", "COMPUTER", "DIAGNOSE", "BIOLOGIE"],
+      hard: ["ABENDSTUNDEN", "ZUSAMMENARBEIT", "ALLGEMEINGUT"],
+    };
+    const list = lists[level] ?? ["TANTE"];
+    if (!list || list.length === 0) return true;
+    return list.includes(word.toUpperCase());
   },
 }));
 
@@ -105,7 +115,7 @@ describe("useGame", () => {
 
   it("wins when guessing the correct word (normal, 8 letters)", () => {
     const { result } = renderHook(() => useGame("normal"));
-    for (const ch of "SCHULBUCH") {
+    for (const ch of "ABENDROT") {
       act(() => result.current.addLetter(ch));
     }
     act(() => result.current.submitGuess());
@@ -228,7 +238,7 @@ describe("useGame", () => {
     expect(result.current.gameState.guesses).toHaveLength(1);
   });
 
-  it("sets duplicateError to true on a duplicate submission", () => {
+  it("sets inputError to true on a duplicate submission", () => {
     const { result } = renderHook(() => useGame("easy"));
     // First submission
     act(() => result.current.addLetter("B"));
@@ -244,6 +254,77 @@ describe("useGame", () => {
     act(() => result.current.addLetter("T"));
     act(() => result.current.addLetter("E"));
     act(() => result.current.submitGuess());
-    expect(result.current.duplicateError).toBe(true);
+    expect(result.current.inputError).toBe(true);
+  });
+
+  // --- Dictionary validation tests ---
+
+  it("shows toast 'Wort nicht im Wörterbuch' when submitting a word not in the dictionary", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    // "BAUCH" is not in the mock easy word list
+    act(() => result.current.addLetter("B"));
+    act(() => result.current.addLetter("A"));
+    act(() => result.current.addLetter("U"));
+    act(() => result.current.addLetter("C"));
+    act(() => result.current.addLetter("H"));
+    act(() => result.current.submitGuess());
+    expect(result.current.toastMessage).toBe("Wort nicht im Wörterbuch");
+  });
+
+  it("does not consume a turn when submitting a word not in the dictionary", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.addLetter("B"));
+    act(() => result.current.addLetter("A"));
+    act(() => result.current.addLetter("U"));
+    act(() => result.current.addLetter("C"));
+    act(() => result.current.addLetter("H"));
+    act(() => result.current.submitGuess());
+    expect(result.current.gameState.attemptCount).toBe(0);
+    expect(result.current.gameState.guesses).toHaveLength(0);
+  });
+
+  it("sets inputError to true when submitting a word not in the dictionary", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.addLetter("B"));
+    act(() => result.current.addLetter("A"));
+    act(() => result.current.addLetter("U"));
+    act(() => result.current.addLetter("C"));
+    act(() => result.current.addLetter("H"));
+    act(() => result.current.submitGuess());
+    expect(result.current.inputError).toBe(true);
+  });
+
+  it("preserves currentGuess after a dictionary rejection", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.addLetter("B"));
+    act(() => result.current.addLetter("A"));
+    act(() => result.current.addLetter("U"));
+    act(() => result.current.addLetter("C"));
+    act(() => result.current.addLetter("H"));
+    act(() => result.current.submitGuess());
+    // currentGuess must be retained so the player can correct without retyping
+    expect(result.current.gameState.currentGuess).toBe("BAUCH");
+  });
+
+  it("shows the duplicate message (not the dictionary message) for a duplicate valid word", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    // First submission of a valid word
+    act(() => result.current.addLetter("B"));
+    act(() => result.current.addLetter("R"));
+    act(() => result.current.addLetter("O"));
+    act(() => result.current.addLetter("T"));
+    act(() => result.current.addLetter("E"));
+    act(() => result.current.submitGuess());
+    expect(result.current.gameState.guesses).toHaveLength(1);
+    // Second submission of the same valid word (duplicate)
+    act(() => result.current.addLetter("B"));
+    act(() => result.current.addLetter("R"));
+    act(() => result.current.addLetter("O"));
+    act(() => result.current.addLetter("T"));
+    act(() => result.current.addLetter("E"));
+    act(() => result.current.submitGuess());
+    // Should trigger duplicate message, NOT the dictionary message
+    expect(result.current.toastMessage).toBe("Du hast dieses Wort bereits geraten.");
+    expect(result.current.toastMessage).not.toBe("Wort nicht im Wörterbuch");
   });
 });
