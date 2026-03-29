@@ -75,7 +75,7 @@ describe("useGame", () => {
       result.current.addLetter("T");
       result.current.submitGuess();
     });
-    expect(result.current.toastMessage).toBe("Nicht genug Buchstaben");
+    expect(result.current.toastMessage).toBe("Wort muss 5 Buchstaben haben.");
     expect(result.current.gameState.guesses).toHaveLength(0);
   });
 

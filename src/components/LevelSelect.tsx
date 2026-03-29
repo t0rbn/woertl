@@ -53,7 +53,7 @@ export default function LevelSelect({ onSelectLevel, levelStatuses }: LevelSelec
     (l) => levelStatuses[l] === "won" || levelStatuses[l] === "lost"
   );
 
-  const headingText = allCompleted ? "Heute geschafft!" : "Schwierigkeitsgrad wählen";
+  const headingText = allCompleted ? "Heute geschafft!" : "Level wählen";
 
   return (
     <div className={styles.wrapper}>

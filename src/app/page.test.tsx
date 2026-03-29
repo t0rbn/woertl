@@ -20,7 +20,7 @@ function selectEasyLevel() {
 describe("Home page – integration", () => {
   it("renders the level selection screen on load", () => {
     render(<Home />);
-    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
+    expect(screen.getByText("Level wählen")).toBeInTheDocument();
   });
 
   it("renders three level cards on the level selection screen", () => {
@@ -51,26 +51,26 @@ describe("Home page – integration", () => {
   it("renders the text input after selecting a level", () => {
     render(<Home />);
     selectEasyLevel();
-    expect(screen.getByLabelText("Ratewort eingeben")).toBeInTheDocument();
+    expect(screen.getByLabelText("Wort eingeben")).toBeInTheDocument();
     expect(screen.queryByLabelText("Tastatur")).not.toBeInTheDocument();
   });
 
   it("shows toast when submitting fewer than 5 letters", async () => {
     render(<Home />);
     selectEasyLevel();
-    const input = screen.getByLabelText("Ratewort eingeben");
+    const input = screen.getByLabelText("Wort eingeben");
     fireEvent.keyDown(input, { key: "t" });
     fireEvent.keyDown(input, { key: "a" });
     fireEvent.keyDown(input, { key: "n" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(await screen.findByText("Nicht genug Buchstaben")).toBeInTheDocument();
+    expect(await screen.findByText("Wort muss 5 Buchstaben haben.")).toBeInTheDocument();
   });
 
   it("submits a full guess via input and shows feedback tiles", async () => {
     render(<Home />);
     selectEasyLevel();
-    const input = screen.getByLabelText("Ratewort eingeben");
+    const input = screen.getByLabelText("Wort eingeben");
     // Type BROTE (wrong guess)
     fireEvent.keyDown(input, { key: "b" });
     fireEvent.keyDown(input, { key: "r" });
@@ -90,23 +90,23 @@ describe("Home page – integration", () => {
   it("wins the game when guessing TANTE", async () => {
     render(<Home />);
     selectEasyLevel();
-    const input = screen.getByLabelText("Ratewort eingeben");
+    const input = screen.getByLabelText("Wort eingeben");
     const letters = ["t", "a", "n", "t", "e"];
     letters.forEach((key) => fireEvent.keyDown(input, { key }));
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(await screen.findByText("Gewonnen!")).toBeInTheDocument();
+    expect(await screen.findByText("Richtig! Du hast das Wort erraten.")).toBeInTheDocument();
   });
 
   it("input is disabled after winning", async () => {
     render(<Home />);
     selectEasyLevel();
-    const input = screen.getByLabelText("Ratewort eingeben");
+    const input = screen.getByLabelText("Wort eingeben");
     const letters = ["t", "a", "n", "t", "e"];
     letters.forEach((key) => fireEvent.keyDown(input, { key }));
     fireEvent.keyDown(input, { key: "Enter" });
 
-    await screen.findByText("Gewonnen!");
+    await screen.findByText("Richtig! Du hast das Wort erraten.");
 
     expect(input).toBeDisabled();
   });
@@ -114,7 +114,7 @@ describe("Home page – integration", () => {
   it("loses after 6 wrong guesses and shows lost banner with target word", async () => {
     render(<Home />);
     selectEasyLevel();
-    const input = screen.getByLabelText("Ratewort eingeben");
+    const input = screen.getByLabelText("Wort eingeben");
     // Use 6 different 5-letter words to avoid triggering duplicate validation
     const wrongGuesses = [
       ["b", "r", "o", "t", "e"],
@@ -129,7 +129,7 @@ describe("Home page – integration", () => {
       fireEvent.keyDown(input, { key: "Enter" });
     }
 
-    expect(await screen.findByText("Leider verloren!")).toBeInTheDocument();
+    expect(await screen.findByText("Schade!")).toBeInTheDocument();
     expect(screen.getByText("TANTE")).toBeInTheDocument();
   });
 
@@ -139,6 +139,6 @@ describe("Home page – integration", () => {
     expect(screen.getByLabelText("Spielfeld")).toBeInTheDocument();
     const backBtn = screen.getByRole("button", { name: /Zurück zur Levelauswahl/ });
     fireEvent.click(backBtn);
-    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
+    expect(screen.getByText("Level wählen")).toBeInTheDocument();
   });
 });
