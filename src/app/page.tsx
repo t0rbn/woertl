@@ -98,7 +98,9 @@ function GameScreen({
 
   function handleSubmitGuess() {
     submitGuess();
-    setTimeout(() => focusInput(), 50);
+    // Use requestAnimationFrame to keep the focus call within the same user-gesture
+    // callback chain, which is required for mobile browsers to keep the virtual keyboard open.
+    requestAnimationFrame(() => focusInput());
   }
 
   function handleLetterInput(letter: string) {
