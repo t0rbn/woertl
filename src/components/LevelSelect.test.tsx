@@ -103,10 +103,10 @@ describe("LevelSelect", () => {
     expect(screen.getByText("Heute geschafft!")).toBeInTheDocument();
   });
 
-  it("shows 'Schwierigkeitsgrad wählen' heading when not all levels are completed", () => {
+  it("shows 'Level wählen' heading when not all levels are completed", () => {
     render(
       <LevelSelect onSelectLevel={vi.fn()} levelStatuses={allAvailable} />
     );
-    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
+    expect(screen.getByText("Level wählen")).toBeInTheDocument();
   });
 });

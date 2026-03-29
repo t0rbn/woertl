@@ -109,7 +109,7 @@ export function useGame(level: Level = "easy"): UseGameReturn {
   const submitGuess = useCallback(() => {
     const currentChars = Array.from(gameState.currentGuess);
     if (currentChars.length !== levelConfig.wordLength) {
-      setToastMessage("Nicht genug Buchstaben");
+      setToastMessage(`Wort muss ${levelConfig.wordLength} Buchstaben haben.`);
       return;
     }
 

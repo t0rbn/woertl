@@ -139,7 +139,7 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
           autoCorrect="off"
           autoCapitalize="characters"
           spellCheck={false}
-          aria-label="Ratewort eingeben"
+          aria-label="Wort eingeben"
           placeholder="Wort eingeben..."
         />
         <div className={styles.hint}>
@@ -150,8 +150,9 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
           onClick={handleButtonClick}
           disabled={disabled}
           type="button"
+          aria-label="Wort abschicken"
         >
-          Eingabe
+          OK
         </button>
         <div
           aria-live="polite"

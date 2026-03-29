@@ -22,14 +22,14 @@ export default function ResultBanner({ status, targetWord, attemptCount }: Resul
     >
       {isWin ? (
         <>
-          <div className={styles.heading}>Gewonnen!</div>
+          <div className={styles.heading}>Richtig! Du hast das Wort erraten.</div>
           <div className={styles.subtext}>
-            Versuch {attemptCount} von 6
+            Du hast das Wort in {attemptCount} Versuchen erraten.
           </div>
         </>
       ) : (
         <>
-          <div className={styles.heading}>Leider verloren!</div>
+          <div className={styles.heading}>Schade!</div>
           <div className={styles.subtext}>
             Das Wort war:{" "}
             <span className={styles.word}>{targetWord}</span>

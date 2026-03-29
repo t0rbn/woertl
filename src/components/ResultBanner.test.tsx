@@ -12,13 +12,13 @@ describe("ResultBanner", () => {
 
   it("shows win message with attempt count", () => {
     render(<ResultBanner status="won" targetWord="TANTE" attemptCount={3} />);
-    expect(screen.getByText("Gewonnen!")).toBeInTheDocument();
-    expect(screen.getByText("Versuch 3 von 6")).toBeInTheDocument();
+    expect(screen.getByText("Richtig! Du hast das Wort erraten.")).toBeInTheDocument();
+    expect(screen.getByText("Du hast das Wort in 3 Versuchen erraten.")).toBeInTheDocument();
   });
 
   it("shows lose message with revealed word", () => {
     render(<ResultBanner status="lost" targetWord="TANTE" attemptCount={6} />);
-    expect(screen.getByText("Leider verloren!")).toBeInTheDocument();
+    expect(screen.getByText("Schade!")).toBeInTheDocument();
     expect(screen.getByText("TANTE")).toBeInTheDocument();
   });
 
