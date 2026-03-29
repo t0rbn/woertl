@@ -65,7 +65,7 @@ function GameScreen({
   onBack: () => void;
   onGameOver: () => void;
 }) {
-  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, duplicateError } =
+  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, inputError: hookInputError } =
     useGame(level);
   const [inputError, setInputError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -168,7 +168,7 @@ function GameScreen({
             onSubmit={handleSubmitGuess}
             onError={handleError}
             disabled={isGameOver}
-            error={inputError || duplicateError}
+            error={inputError || hookInputError}
             wordLength={levelConfig.wordLength}
           />
         </div>

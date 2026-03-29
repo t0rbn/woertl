@@ -5,6 +5,7 @@ import type { GameState, TileState, Level } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
 import { LEVEL_CONFIGS } from "@/lib/levelConfig";
 import { getDailyWord } from "@/lib/dailyWord";
+import { isWordInList } from "@/lib/wordList";
 
 type Action =
   | { type: "ADD_LETTER"; letter: string }
@@ -77,7 +78,8 @@ export type UseGameReturn = {
   deleteLetter: () => void;
   submitGuess: () => void;
   toastMessage: string | null;
-  duplicateError: boolean;
+  /** True while the input-error shake animation should be active. */
+  inputError: boolean;
 };
 
 export function useGame(level: Level = "easy"): UseGameReturn {
@@ -96,7 +98,7 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     createInitialState(targetWord)
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [duplicateError, setDuplicateError] = useState(false);
+  const [inputError, setInputError] = useState(false);
 
   const addLetter = useCallback((letter: string) => {
     dispatch({ type: "ADD_LETTER", letter: letter.toUpperCase() });
@@ -107,12 +109,22 @@ export function useGame(level: Level = "easy"): UseGameReturn {
   }, []);
 
   const submitGuess = useCallback(() => {
+    // (1) Check correct length
     const currentChars = Array.from(gameState.currentGuess);
     if (currentChars.length !== levelConfig.wordLength) {
       setToastMessage("Nicht genug Buchstaben");
       return;
     }
 
+    // (2) Check word is in dictionary
+    if (!isWordInList(gameState.currentGuess, level)) {
+      setToastMessage("Wort nicht im Wörterbuch");
+      setInputError(true);
+      setTimeout(() => setInputError(false), 350);
+      return;
+    }
+
+    // (3) Check word is not a duplicate
     const currentWord = gameState.currentGuess.toUpperCase();
     const isDuplicate = gameState.guesses.some((row) => {
       const guessedWord = row.map((tile) => tile.letter).join("").toUpperCase();
@@ -121,13 +133,14 @@ export function useGame(level: Level = "easy"): UseGameReturn {
 
     if (isDuplicate) {
       setToastMessage("Du hast dieses Wort bereits geraten.");
-      setDuplicateError(true);
-      setTimeout(() => setDuplicateError(false), 350);
+      setInputError(true);
+      setTimeout(() => setInputError(false), 350);
       return;
     }
 
+    // (4) Process guess
     dispatch({ type: "SUBMIT_GUESS" });
-  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength]);
+  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength, level]);
 
   // Auto-dismiss toast after 1500ms
   useEffect(() => {
@@ -142,6 +155,6 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     deleteLetter,
     submitGuess,
     toastMessage,
-    duplicateError,
+    inputError,
   };
 }
