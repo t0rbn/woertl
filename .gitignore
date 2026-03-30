@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Dictionary source files (large raw word lists, re-downloadable)
+# See scripts/sources/README.md for download instructions
+scripts/sources/german-wordlist.txt
