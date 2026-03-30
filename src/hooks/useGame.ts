@@ -1,11 +1,12 @@
 "use client";
 
-import { useReducer, useEffect, useState, useCallback, useMemo } from "react";
+import { useReducer, useEffect, useState, useCallback, useMemo, useRef } from "react";
 import type { GameState, TileState, Level } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
 import { LEVEL_CONFIGS } from "@/lib/levelConfig";
 import { getDailyWord } from "@/lib/dailyWord";
-import { isWordInList } from "@/lib/wordList";
+import { isWordInValidationDict } from "@/lib/wordList";
+import { loadValidationDict } from "@/lib/dictLoader";
 
 type Action =
   | { type: "ADD_LETTER"; letter: string }
@@ -16,6 +17,8 @@ type ReducerConfig = {
   wordLength: number;
   maxAttempts: number;
 };
+
+type DictStatus = "idle" | "loading" | "loaded" | "error";
 
 function createInitialState(targetWord: string): GameState {
   return {
@@ -80,6 +83,10 @@ export type UseGameReturn = {
   toastMessage: string | null;
   /** True while the input-error shake animation should be active. */
   inputError: boolean;
+  /** True while the validation dictionary is being fetched. Input should be disabled. */
+  isDictLoading: boolean;
+  /** True if the validation dictionary failed to load. Input should remain disabled. */
+  isDictError: boolean;
 };
 
 export function useGame(level: Level = "easy"): UseGameReturn {
@@ -100,6 +107,21 @@ export function useGame(level: Level = "easy"): UseGameReturn {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [inputError, setInputError] = useState(false);
 
+  // Dictionary loading state
+  const [dictStatus, setDictStatus] = useState<DictStatus>("idle");
+  const [validationDict, setValidationDict] = useState<Set<string> | null>(null);
+
+  // Ref to hold the pending guess word while the dictionary loads, so we can
+  // validate and submit it automatically once the dictionary is ready.
+  const pendingGuess = useRef<string | null>(null);
+
+  // Stable ref to the current guesses list so async callbacks can access the
+  // latest value without stale-closure issues.
+  const gameStateRef = useRef(gameState);
+  useEffect(() => {
+    gameStateRef.current = gameState;
+  });
+
   const addLetter = useCallback((letter: string) => {
     dispatch({ type: "ADD_LETTER", letter: letter.toUpperCase() });
   }, []);
@@ -108,6 +130,17 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     dispatch({ type: "DELETE_LETTER" });
   }, []);
 
+  /**
+   * Validates and submits the current guess. The validation order is:
+   *   1. Length check
+   *   2. Dictionary check (using the extended validation dictionary)
+   *   3. Duplicate check
+   *   4. Dispatch SUBMIT_GUESS
+   *
+   * On the first call, if the dictionary hasn't been loaded yet, it triggers
+   * an async fetch. The pending guess is remembered and processed automatically
+   * once the dictionary is available.
+   */
   const submitGuess = useCallback(() => {
     // (1) Check correct length
     const currentChars = Array.from(gameState.currentGuess);
@@ -116,15 +149,35 @@ export function useGame(level: Level = "easy"): UseGameReturn {
       return;
     }
 
-    // (2) Check word is in dictionary
-    if (!isWordInList(gameState.currentGuess, level)) {
+    // (2a) If dict loading failed – nothing to do; input already disabled.
+    if (dictStatus === "error") {
+      return;
+    }
+
+    // (2b) If dict not yet loaded, trigger loading and remember pending guess.
+    if (dictStatus === "idle") {
+      pendingGuess.current = gameState.currentGuess;
+      setDictStatus("loading");
+      setToastMessage("Wortliste wird geladen...");
+      return;
+    }
+
+    // (2c) Already loading – show loading toast and do nothing else.
+    if (dictStatus === "loading") {
+      setToastMessage("Wortliste wird geladen...");
+      return;
+    }
+
+    // (2d) Dict is loaded – validate the word against the dictionary.
+    const dict = validationDict;
+    if (!dict || !isWordInValidationDict(gameState.currentGuess, dict)) {
       setToastMessage("Wort nicht im Wörterbuch");
       setInputError(true);
       setTimeout(() => setInputError(false), 350);
       return;
     }
 
-    // (3) Check word is not a duplicate
+    // (3) Check word is not a duplicate.
     const currentWord = gameState.currentGuess.toUpperCase();
     const isDuplicate = gameState.guesses.some((row) => {
       const guessedWord = row.map((tile) => tile.letter).join("").toUpperCase();
@@ -138,13 +191,81 @@ export function useGame(level: Level = "easy"): UseGameReturn {
       return;
     }
 
-    // (4) Process guess
+    // (4) Process guess.
     dispatch({ type: "SUBMIT_GUESS" });
-  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength, level]);
+  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength, dictStatus, validationDict]);
 
-  // Auto-dismiss toast after 1500ms
+  // Effect: when dictStatus transitions to "loading", perform the async fetch.
+  // All post-load logic (clearing toast, validating pending guess) is done
+  // inside the promise callbacks to avoid React stale-closure issues between effects.
+  useEffect(() => {
+    if (dictStatus !== "loading") return;
+
+    let cancelled = false;
+
+    loadValidationDict(level)
+      .then((dict) => {
+        if (cancelled) return;
+
+        // Store the dictionary and mark as loaded.
+        setValidationDict(dict);
+        setDictStatus("loaded");
+
+        // Process the pending guess immediately in the .then() callback so that
+        // we use the freshly-resolved dictionary (not stale state).
+        const pending = pendingGuess.current;
+        pendingGuess.current = null;
+
+        if (!pending) {
+          // No pending guess; just clear the loading toast.
+          setToastMessage(null);
+          return;
+        }
+
+        // Validate the pending guess against the freshly loaded dictionary.
+        if (!isWordInValidationDict(pending, dict)) {
+          setToastMessage("Wort nicht im Wörterbuch");
+          setInputError(true);
+          setTimeout(() => setInputError(false), 350);
+          return;
+        }
+
+        // Check for duplicate using the ref to get the most recent guesses list.
+        const currentWord = pending.toUpperCase();
+        const isDuplicate = gameStateRef.current.guesses.some((row) => {
+          const guessedWord = row.map((tile) => tile.letter).join("").toUpperCase();
+          return guessedWord === currentWord;
+        });
+
+        if (isDuplicate) {
+          setToastMessage("Du hast dieses Wort bereits geraten.");
+          setInputError(true);
+          setTimeout(() => setInputError(false), 350);
+          return;
+        }
+
+        // Clear the loading toast and submit the guess.
+        setToastMessage(null);
+        dispatch({ type: "SUBMIT_GUESS" });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setDictStatus("error");
+        setToastMessage("Fehler beim Laden. Bitte Seite neu laden.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dictStatus, level]);
+
+  // Auto-dismiss toast after 1500ms – but NOT for the loading toast and NOT for
+  // the persistent dictionary-error toast.
   useEffect(() => {
     if (!toastMessage) return;
+    if (toastMessage === "Wortliste wird geladen...") return;
+    if (toastMessage === "Fehler beim Laden. Bitte Seite neu laden.") return;
     const timer = setTimeout(() => setToastMessage(null), 1500);
     return () => clearTimeout(timer);
   }, [toastMessage]);
@@ -156,5 +277,7 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     submitGuess,
     toastMessage,
     inputError,
+    isDictLoading: dictStatus === "loading",
+    isDictError: dictStatus === "error",
   };
 }

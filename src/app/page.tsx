@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./page.module.css";
 import { useGame } from "@/hooks/useGame";
 import Toast from "@/components/Toast";
+import type { ToastVariant } from "@/components/Toast";
 import TileGrid from "@/components/TileGrid";
 import ResultBanner from "@/components/ResultBanner";
 import GuessInput from "@/components/GuessInput";
@@ -65,8 +66,16 @@ function GameScreen({
   onBack: () => void;
   onGameOver: () => void;
 }) {
-  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, inputError: hookInputError } =
-    useGame(level);
+  const {
+    gameState,
+    addLetter,
+    deleteLetter,
+    submitGuess,
+    toastMessage,
+    inputError: hookInputError,
+    isDictLoading,
+    isDictError,
+  } = useGame(level);
   const [inputError, setInputError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const levelConfig = LEVEL_CONFIGS[level];
@@ -122,9 +131,16 @@ function GameScreen({
 
   const isGameOver = gameState.status !== "playing";
 
+  // Determine toast variant based on dictionary loading state.
+  const toastVariant: ToastVariant = isDictLoading
+    ? "loading"
+    : isDictError
+      ? "error"
+      : "error";
+
   return (
     <>
-      <Toast message={toastMessage} />
+      <Toast message={toastMessage} variant={toastVariant} />
       <main className={styles.main}>
         <div className={styles.gameHeader}>
           <button
@@ -169,7 +185,7 @@ function GameScreen({
             onDelete={handleDelete}
             onSubmit={handleSubmitGuess}
             onError={handleError}
-            disabled={isGameOver}
+            disabled={isGameOver || isDictLoading || isDictError}
             error={inputError || hookInputError}
             wordLength={levelConfig.wordLength}
           />
