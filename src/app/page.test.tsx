@@ -12,6 +12,21 @@ vi.mock("@/lib/dailyWord", () => ({
   },
 }));
 
+// Mock dictLoader so that loadValidationDict resolves immediately with all
+// test words in the dictionary. Without this mock, the async fetch would hang
+// in the test environment.
+vi.mock("@/lib/dictLoader", () => ({
+  loadValidationDict: vi.fn((_level: string) => {
+    return Promise.resolve(
+      new Set([
+        "TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL", "MUSIK",
+        "ABENDROT", "SCHULBCH", "COMPUTER", "DIAGNOSE", "BIOLOGIE",
+        "ABENDSTUNDEN", "ALLGEMEINGUT",
+      ])
+    );
+  }),
+}));
+
 // Helper: navigate to game screen by clicking Easy level card
 function selectEasyLevel() {
   fireEvent.click(screen.getByRole("button", { name: /Einfach/i }));
@@ -79,8 +94,9 @@ describe("Home page – integration", () => {
     fireEvent.keyDown(input, { key: "e" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    // After submission, tiles with feedback should appear
-    expect(screen.getByLabelText("B, nicht im Wort")).toBeInTheDocument();
+    // After submission, tiles with feedback should appear.
+    // The first guess triggers async dict loading; use findByLabelText to wait.
+    expect(await screen.findByLabelText("B, nicht im Wort")).toBeInTheDocument();
     expect(screen.getByLabelText("R, nicht im Wort")).toBeInTheDocument();
     expect(screen.getByLabelText("O, nicht im Wort")).toBeInTheDocument();
     expect(screen.getByLabelText("T, richtig")).toBeInTheDocument();
@@ -124,7 +140,16 @@ describe("Home page – integration", () => {
       ["v", "o", "g", "e", "l"],
       ["m", "u", "s", "i", "k"],
     ];
-    for (const guess of wrongGuesses) {
+
+    // First guess triggers async dict loading; wait for it to complete
+    const [firstGuess, ...restGuesses] = wrongGuesses;
+    firstGuess!.forEach((key) => fireEvent.keyDown(input, { key }));
+    fireEvent.keyDown(input, { key: "Enter" });
+    // Wait for the dict to load and the first guess to be submitted
+    await screen.findByLabelText("B, nicht im Wort");
+
+    // Remaining guesses – dict is now loaded
+    for (const guess of restGuesses) {
       guess.forEach((key) => fireEvent.keyDown(input, { key }));
       fireEvent.keyDown(input, { key: "Enter" });
     }
