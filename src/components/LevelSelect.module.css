@@ -7,7 +7,7 @@
 }
 
 .heading {
-  font-size: 1rem;
+  font-size: var(--font-size-body);
   color: var(--color-text-secondary);
   text-align: center;
   margin-bottom: 24px;
@@ -41,16 +41,6 @@
   outline: none;
 }
 
-.cardCompleted {
-  border-color: var(--color-correct);
-  opacity: 0.85;
-}
-
-.cardLost {
-  border-color: var(--color-level-hard-fg);
-  opacity: 0.9;
-}
-
 .icon {
   width: 44px;
   height: 44px;
@@ -58,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: var(--font-size-heading);
   flex-shrink: 0;
 }
 
@@ -83,14 +73,14 @@
 }
 
 .levelName {
-  font-size: 1.05rem;
+  font-size: var(--font-size-body);
   font-weight: bold;
   color: var(--color-text);
   margin-bottom: 3px;
 }
 
 .levelDesc {
-  font-size: 0.78rem;
+  font-size: var(--font-size-caption);
   color: var(--color-text-secondary);
   line-height: 1.35;
   margin-bottom: 6px;
@@ -112,7 +102,7 @@
 }
 
 .badge {
-  font-size: 0.7rem;
+  font-size: var(--font-size-caption);
   padding: 3px 8px;
   border-radius: 20px;
   font-weight: bold;
@@ -126,26 +116,6 @@
   border: 1px solid var(--color-outline-muted, #4a235a);
 }
 
-.badgeWon {
-  background: var(--color-level-easy-bg);
-  color: var(--color-level-easy-fg);
-  border: 1px solid var(--color-correct);
-}
-
-.badgeLost {
-  background: var(--color-level-hard-bg);
-  color: var(--color-level-hard-fg);
-  border: 1px solid var(--color-level-hard-fg);
-}
-
-.completedOverlay {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  font-size: 1rem;
-  color: var(--color-correct);
-}
-
 @media (max-width: 360px) {
   .card {
     padding: 12px 12px;
@@ -155,11 +125,11 @@
   .icon {
     width: 36px;
     height: 36px;
-    font-size: 1.1rem;
+    font-size: var(--font-size-body);
   }
 
   .levelName {
-    font-size: 0.95rem;
+    font-size: var(--font-size-label);
   }
 
   .miniTile {

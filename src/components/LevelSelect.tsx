@@ -4,11 +4,8 @@ import type { Level } from "@/types/gameTypes";
 import { LEVEL_CONFIGS } from "@/lib/levelConfig";
 import styles from "./LevelSelect.module.css";
 
-type LevelStatus = "available" | "won" | "lost";
-
 type LevelSelectProps = {
   onSelectLevel: (level: Level) => void;
-  levelStatuses: Record<Level, LevelStatus>;
 };
 
 const LEVEL_ICONS: Record<Level, string> = {
@@ -23,51 +20,21 @@ const LEVEL_ICON_CLASSES: Record<Level, string> = {
   hard: styles.iconHard ?? "",
 };
 
-const BADGE_LABELS: Record<LevelStatus, string> = {
-  available: "Spielen",
-  won: "Gewonnen ✓",
-  lost: "Verloren",
-};
-
-function getStatusBadgeClass(status: LevelStatus): string {
-  switch (status) {
-    case "won":
-      return styles.badgeWon ?? "";
-    case "lost":
-      return styles.badgeLost ?? "";
-    default:
-      return styles.badgeAvailable ?? "";
-  }
-}
-
-function getCardClass(status: LevelStatus): string {
-  if (status === "won") return `${styles.card ?? ""} ${styles.cardCompleted ?? ""}`;
-  if (status === "lost") return `${styles.card ?? ""} ${styles.cardLost ?? ""}`;
-  return styles.card ?? "";
-}
-
 const LEVELS: Level[] = ["easy", "normal", "hard"];
 
-export default function LevelSelect({ onSelectLevel, levelStatuses }: LevelSelectProps) {
-  const allCompleted = LEVELS.every(
-    (l) => levelStatuses[l] === "won" || levelStatuses[l] === "lost"
-  );
-
-  const headingText = allCompleted ? "Heute geschafft!" : "Schwierigkeitsgrad wählen";
-
+export default function LevelSelect({ onSelectLevel }: LevelSelectProps) {
   return (
     <div className={styles.wrapper}>
-      <h2 className={styles.heading}>{headingText}</h2>
+      <h2 className={styles.heading}>Schwierigkeitsgrad wählen</h2>
       <div className={styles.cardList}>
         {LEVELS.map((level) => {
           const config = LEVEL_CONFIGS[level];
-          const status = levelStatuses[level];
-          const ariaLabel = `${config.label} – ${config.wordLength} Buchstaben, ${config.maxAttempts} Versuche. Status: ${BADGE_LABELS[status]}`;
+          const ariaLabel = `${config.label} – ${config.wordLength} Buchstaben, ${config.maxAttempts} Versuche. Spielen`;
 
           return (
             <div
               key={level}
-              className={getCardClass(status)}
+              className={styles.card}
               role="button"
               tabIndex={0}
               aria-label={ariaLabel}
@@ -93,12 +60,9 @@ export default function LevelSelect({ onSelectLevel, levelStatuses }: LevelSelec
                   ))}
                 </div>
               </div>
-              <div className={`${styles.badge} ${getStatusBadgeClass(status)}`}>
-                {BADGE_LABELS[status]}
+              <div className={`${styles.badge} ${styles.badgeAvailable}`}>
+                Spielen
               </div>
-              {status === "won" && (
-                <span className={styles.completedOverlay} aria-hidden="true">✓</span>
-              )}
             </div>
           );
         })}

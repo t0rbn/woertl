@@ -2,13 +2,37 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Home from "./page";
 
-// Mock dailyWord to return predictable words
-vi.mock("@/lib/dailyWord", () => ({
-  getDailyWord: (level: string) => {
-    if (level === "easy") return "TANTE";
-    if (level === "normal") return "SCHULBCH"; // 8 letters placeholder
-    if (level === "hard") return "ZUSAMMENABT"; // 11 letters placeholder
+// Mock randomWord to return predictable words
+vi.mock("@/lib/randomWord", () => ({
+  getRandomWord: (level: string, lastWord?: string) => {
+    if (level === "easy") {
+      // Return a different word if lastWord is TANTE, to test consecutive-repeat avoidance
+      if (lastWord === "TANTE") return "BROTE";
+      return "TANTE";
+    }
+    if (level === "normal") return "ABENDROT"; // 8 letters
+    if (level === "hard") return "ABENDSTUNDEN"; // 12 letters
     return "TANTE";
+  },
+}));
+
+// Mock wordList for validation
+vi.mock("@/lib/wordList", () => ({
+  getWordList: (level: string) => {
+    if (level === "easy") return ["TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL", "MUSIK"];
+    if (level === "normal") return ["ABENDROT", "SCHULBUCH", "COMPUTER", "DIAGNOSE", "BIOLOGIE"];
+    if (level === "hard") return ["ABENDSTUNDEN", "ZUSAMMENARBEIT", "ALLGEMEINGUT"];
+    return ["TANTE"];
+  },
+  isWordInList: (word: string, level: string) => {
+    const lists: Record<string, string[]> = {
+      easy: ["TANTE", "BROTE", "KRISE", "LAMPE", "HUNDE", "VOGEL", "MUSIK"],
+      normal: ["ABENDROT", "SCHULBUCH", "COMPUTER", "DIAGNOSE", "BIOLOGIE"],
+      hard: ["ABENDSTUNDEN", "ZUSAMMENARBEIT", "ALLGEMEINGUT"],
+    };
+    const list = lists[level] ?? ["TANTE"];
+    if (!list || list.length === 0) return true;
+    return list.includes(word.toUpperCase());
   },
 }));
 
@@ -20,7 +44,7 @@ function selectEasyLevel() {
 describe("Home page – integration", () => {
   it("renders the level selection screen on load", () => {
     render(<Home />);
-    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
+    expect(screen.getByText(/Schwierigkeitsgrad wählen/)).toBeInTheDocument();
   });
 
   it("renders three level cards on the level selection screen", () => {
@@ -28,6 +52,12 @@ describe("Home page – integration", () => {
     expect(screen.getByRole("button", { name: /Einfach/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Normal/i })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Schwer/i })).toBeInTheDocument();
+  });
+
+  it("always shows 'Spielen' badge (no status badges)", () => {
+    render(<Home />);
+    const spielenBadges = screen.getAllByText("Spielen");
+    expect(spielenBadges).toHaveLength(3);
   });
 
   it("navigates to game screen when a level is selected", () => {
@@ -41,7 +71,6 @@ describe("Home page – integration", () => {
     selectEasyLevel();
     // 6 rows x 5 tiles = 30 tiles; query within the grid container
     const grid = screen.getByLabelText("Spielfeld");
-    // Every tile is a div inside the grid
     const rows = grid.querySelectorAll("[aria-label]");
     // Exclude the polite live region (which has aria-live)
     const tiles = Array.from(rows).filter((el) => !el.hasAttribute("aria-live") && !el.hasAttribute("aria-atomic"));
@@ -64,7 +93,7 @@ describe("Home page – integration", () => {
     fireEvent.keyDown(input, { key: "n" });
     fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(await screen.findByText("Nicht genug Buchstaben")).toBeInTheDocument();
+    expect(await screen.findByText("Wort muss 5 Buchstaben haben.")).toBeInTheDocument();
   });
 
   it("submits a full guess via input and shows feedback tiles", async () => {
@@ -87,7 +116,7 @@ describe("Home page – integration", () => {
     expect(screen.getByLabelText("E, richtig")).toBeInTheDocument();
   });
 
-  it("wins the game when guessing TANTE", async () => {
+  it("wins the game when guessing TANTE and shows result dialog", async () => {
     render(<Home />);
     selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
@@ -111,7 +140,7 @@ describe("Home page – integration", () => {
     expect(input).toBeDisabled();
   });
 
-  it("loses after 6 wrong guesses and shows lost banner with target word", async () => {
+  it("loses after 6 wrong guesses and shows result dialog with target word", async () => {
     render(<Home />);
     selectEasyLevel();
     const input = screen.getByLabelText("Ratewort eingeben");
@@ -139,6 +168,37 @@ describe("Home page – integration", () => {
     expect(screen.getByLabelText("Spielfeld")).toBeInTheDocument();
     const backBtn = screen.getByRole("button", { name: /Zurück zur Levelauswahl/ });
     fireEvent.click(backBtn);
-    expect(screen.getByText(/Schwierigkeitsgrad/)).toBeInTheDocument();
+    expect(screen.getByText(/Schwierigkeitsgrad wählen/)).toBeInTheDocument();
+  });
+
+  it("result dialog 'Stufenauswahl' returns to level select", async () => {
+    render(<Home />);
+    selectEasyLevel();
+    const input = screen.getByLabelText("Ratewort eingeben");
+    const letters = ["t", "a", "n", "t", "e"];
+    letters.forEach((key) => fireEvent.keyDown(input, { key }));
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    // Wait for result dialog
+    const stufenBtn = await screen.findByText("Stufenauswahl");
+    fireEvent.click(stufenBtn);
+
+    expect(screen.getByText(/Schwierigkeitsgrad wählen/)).toBeInTheDocument();
+  });
+
+  it("result dialog 'Schwerer spielen' switches to harder level", async () => {
+    render(<Home />);
+    selectEasyLevel();
+    const input = screen.getByLabelText("Ratewort eingeben");
+    const letters = ["t", "a", "n", "t", "e"];
+    letters.forEach((key) => fireEvent.keyDown(input, { key }));
+    fireEvent.keyDown(input, { key: "Enter" });
+
+    // Wait for result dialog and click switch level
+    const harderBtn = await screen.findByText("Schwerer spielen");
+    fireEvent.click(harderBtn);
+
+    // Should now be in game screen with Normal level
+    expect(screen.getByText(/Normal/)).toBeInTheDocument();
   });
 });

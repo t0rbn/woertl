@@ -1,0 +1,146 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 150ms ease-in forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
+
+.dialog {
+  background: var(--color-surface);
+  border: 2px solid var(--color-outline);
+  border-radius: var(--radius-card);
+  padding: 28px 24px 24px;
+  max-width: 360px;
+  width: calc(100% - 32px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-family: var(--font-main);
+  color: var(--color-text);
+}
+
+.heading {
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.subheading {
+  font-size: 0.9rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.solutionBox {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--radius-card);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.solutionLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.solutionWord {
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btnPrimary {
+  background: var(--color-primary-dark);
+  color: var(--color-text-on-color);
+  border: none;
+  border-radius: var(--radius-card);
+  padding: 12px 20px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btnPrimary:hover,
+.btnPrimary:focus {
+  opacity: 0.88;
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.btnSecondary {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  border: 2px solid var(--color-outline);
+  border-radius: var(--radius-card);
+  padding: 10px 20px;
+  font-family: var(--font-main);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.btnSecondary:hover,
+.btnSecondary:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.btnGhost {
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: none;
+  border-radius: var(--radius-card);
+  padding: 8px 20px;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.15s;
+}
+
+.btnGhost:hover,
+.btnGhost:focus {
+  color: var(--color-text);
+  outline: 2px solid var(--color-outline);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btnPrimary,
+  .btnSecondary,
+  .btnGhost {
+    transition: none;
+  }
+}

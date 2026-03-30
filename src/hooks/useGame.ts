@@ -4,12 +4,13 @@ import { useReducer, useEffect, useState, useCallback, useMemo } from "react";
 import type { GameState, TileState, Level } from "@/types/gameTypes";
 import { calculateFeedback } from "@/lib/calculateFeedback";
 import { LEVEL_CONFIGS } from "@/lib/levelConfig";
-import { getDailyWord } from "@/lib/dailyWord";
+import { isWordInList } from "@/lib/wordList";
 
 type Action =
   | { type: "ADD_LETTER"; letter: string }
   | { type: "DELETE_LETTER" }
-  | { type: "SUBMIT_GUESS" };
+  | { type: "SUBMIT_GUESS" }
+  | { type: "RESET"; targetWord: string };
 
 type ReducerConfig = {
   wordLength: number;
@@ -28,6 +29,10 @@ function createInitialState(targetWord: string): GameState {
 
 function makeGameReducer(config: ReducerConfig) {
   return function gameReducer(state: GameState, action: Action): GameState {
+    if (action.type === "RESET") {
+      return createInitialState(action.targetWord);
+    }
+
     if (state.status !== "playing") return state;
 
     switch (action.type) {
@@ -76,13 +81,14 @@ export type UseGameReturn = {
   addLetter: (letter: string) => void;
   deleteLetter: () => void;
   submitGuess: () => void;
+  resetGame: (newTargetWord: string) => void;
   toastMessage: string | null;
-  duplicateError: boolean;
+  /** True while the input-error shake animation should be active. */
+  inputError: boolean;
 };
 
-export function useGame(level: Level = "easy"): UseGameReturn {
+export function useGame(level: Level = "easy", targetWord: string): UseGameReturn {
   const levelConfig = LEVEL_CONFIGS[level];
-  const targetWord = getDailyWord(level);
 
   // Create a stable reducer from the level config; level is fixed for the
   // lifetime of this hook instance (GameScreen unmounts when level changes).
@@ -96,7 +102,7 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     createInitialState(targetWord)
   );
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [duplicateError, setDuplicateError] = useState(false);
+  const [inputError, setInputError] = useState(false);
 
   const addLetter = useCallback((letter: string) => {
     dispatch({ type: "ADD_LETTER", letter: letter.toUpperCase() });
@@ -107,12 +113,22 @@ export function useGame(level: Level = "easy"): UseGameReturn {
   }, []);
 
   const submitGuess = useCallback(() => {
+    // (1) Check correct length
     const currentChars = Array.from(gameState.currentGuess);
     if (currentChars.length !== levelConfig.wordLength) {
-      setToastMessage("Nicht genug Buchstaben");
+      setToastMessage(`Wort muss ${levelConfig.wordLength} Buchstaben haben.`);
       return;
     }
 
+    // (2) Check word is in dictionary
+    if (!isWordInList(gameState.currentGuess, level)) {
+      setToastMessage("Wort nicht im Wörterbuch");
+      setInputError(true);
+      setTimeout(() => setInputError(false), 350);
+      return;
+    }
+
+    // (3) Check word is not a duplicate
     const currentWord = gameState.currentGuess.toUpperCase();
     const isDuplicate = gameState.guesses.some((row) => {
       const guessedWord = row.map((tile) => tile.letter).join("").toUpperCase();
@@ -121,13 +137,20 @@ export function useGame(level: Level = "easy"): UseGameReturn {
 
     if (isDuplicate) {
       setToastMessage("Du hast dieses Wort bereits geraten.");
-      setDuplicateError(true);
-      setTimeout(() => setDuplicateError(false), 350);
+      setInputError(true);
+      setTimeout(() => setInputError(false), 350);
       return;
     }
 
+    // (4) Process guess
     dispatch({ type: "SUBMIT_GUESS" });
-  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength]);
+  }, [gameState.currentGuess, gameState.guesses, levelConfig.wordLength, level]);
+
+  const resetGame = useCallback((newTargetWord: string) => {
+    dispatch({ type: "RESET", targetWord: newTargetWord });
+    setToastMessage(null);
+    setInputError(false);
+  }, []);
 
   // Auto-dismiss toast after 1500ms
   useEffect(() => {
@@ -141,7 +164,8 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     addLetter,
     deleteLetter,
     submitGuess,
+    resetGame,
     toastMessage,
-    duplicateError,
+    inputError,
   };
 }

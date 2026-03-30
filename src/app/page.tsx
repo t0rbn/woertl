@@ -5,89 +5,89 @@ import styles from "./page.module.css";
 import { useGame } from "@/hooks/useGame";
 import Toast from "@/components/Toast";
 import TileGrid from "@/components/TileGrid";
-import ResultBanner from "@/components/ResultBanner";
+import ResultDialog from "@/components/ResultDialog";
 import GuessInput from "@/components/GuessInput";
 import LevelSelect from "@/components/LevelSelect";
 import type { Level } from "@/types/gameTypes";
 import { LEVEL_CONFIGS } from "@/lib/levelConfig";
+import { getRandomWord } from "@/lib/randomWord";
 
-type LevelStatus = "available" | "won" | "lost";
-
-function getTodayKey(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, "0");
-  const d = String(now.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function readLevelStatus(level: Level): LevelStatus {
-  if (typeof window === "undefined") return "available";
-  try {
-    const key = `game_${level}_${getTodayKey()}`;
-    const raw = sessionStorage.getItem(key);
-    if (!raw) return "available";
-    const data = JSON.parse(raw) as { status?: string };
-    if (data.status === "won") return "won";
-    if (data.status === "lost") return "lost";
-  } catch {
-    // ignore
-  }
-  return "available";
-}
-
-function writeLevelStatus(level: Level, status: "won" | "lost"): void {
+/** Persist per-level stats to sessionStorage (wins, losses, total). */
+function incrementLevelStats(level: Level, result: "won" | "lost"): void {
   if (typeof window === "undefined") return;
   try {
-    const key = `game_${level}_${getTodayKey()}`;
-    sessionStorage.setItem(key, JSON.stringify({ status }));
+    const key = `stats_${level}`;
+    const raw = sessionStorage.getItem(key);
+    const data: { wins: number; losses: number; total: number } = raw
+      ? (JSON.parse(raw) as { wins: number; losses: number; total: number })
+      : { wins: 0, losses: 0, total: 0 };
+    if (result === "won") data.wins += 1;
+    else data.losses += 1;
+    data.total += 1;
+    sessionStorage.setItem(key, JSON.stringify(data));
   } catch {
     // ignore
   }
 }
-
-function readAllLevelStatuses(): Record<Level, LevelStatus> {
-  return {
-    easy: readLevelStatus("easy"),
-    normal: readLevelStatus("normal"),
-    hard: readLevelStatus("hard"),
-  };
-}
-
 
 type View = "levelSelect" | "game";
 
 function GameScreen({
   level,
   onBack,
-  onGameOver,
+  onSwitchLevel,
 }: {
   level: Level;
   onBack: () => void;
-  onGameOver: () => void;
+  onSwitchLevel: (newLevel: Level) => void;
 }) {
-  const { gameState, addLetter, deleteLetter, submitGuess, toastMessage, duplicateError } =
-    useGame(level);
+  // Initialise target word once per mount (no previous word on first load)
+  const [targetWord] = useState<string>(() => getRandomWord(level));
+
+  const {
+    gameState,
+    addLetter,
+    deleteLetter,
+    submitGuess,
+    resetGame,
+    toastMessage,
+    inputError: hookInputError,
+  } = useGame(level, targetWord);
+
   const [inputError, setInputError] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const levelConfig = LEVEL_CONFIGS[level];
+  const statsRecorded = useRef(false);
 
   const focusInput = useCallback(() => {
     inputRef.current?.focus();
   }, []);
 
-  // Notify parent when game ends
-  const gameOverReported = useRef(false);
+  // Show result dialog after game ends (with short delay for animation)
   useEffect(() => {
-    if (!gameOverReported.current && gameState.status !== "playing") {
-      gameOverReported.current = true;
-      writeLevelStatus(level, gameState.status);
-      onGameOver();
-    }
-  }, [gameState.status, level, onGameOver]);
+    if (gameState.status === "playing") return;
+    if (statsRecorded.current) return;
 
-  // Escape key to go back
+    statsRecorded.current = true;
+    incrementLevelStats(level, gameState.status);
+
+    // Determine delay: 0 if prefers-reduced-motion
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const delay = reducedMotion ? 0 : 150;
+
+    const timer = setTimeout(() => {
+      setShowDialog(true);
+    }, delay);
+    return () => clearTimeout(timer);
+  }, [gameState.status, level]);
+
+  // Escape key to go back (only when dialog is not showing)
   useEffect(() => {
+    if (showDialog) return;
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         onBack();
@@ -95,11 +95,13 @@ function GameScreen({
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onBack]);
+  }, [onBack, showDialog]);
 
   function handleSubmitGuess() {
     submitGuess();
-    setTimeout(() => focusInput(), 50);
+    // Use requestAnimationFrame to keep the focus call within the same user-gesture
+    // callback chain, which is required for mobile browsers to keep the virtual keyboard open.
+    requestAnimationFrame(() => focusInput());
   }
 
   function handleLetterInput(letter: string) {
@@ -119,11 +121,41 @@ function GameScreen({
     }, 350);
   }
 
+  function handlePlayAgain() {
+    const newWord = getRandomWord(level, gameState.targetWord);
+    statsRecorded.current = false;
+    resetGame(newWord);
+    setShowDialog(false);
+    requestAnimationFrame(() => focusInput());
+  }
+
+  function handleChangeLevel(newLevel: Level) {
+    setShowDialog(false);
+    onSwitchLevel(newLevel);
+  }
+
+  function handleBackToLevelSelect() {
+    setShowDialog(false);
+    onBack();
+  }
+
   const isGameOver = gameState.status !== "playing";
 
   return (
     <>
       <Toast message={toastMessage} />
+      {showDialog && isGameOver && (
+        <ResultDialog
+          status={gameState.status as "won" | "lost"}
+          targetWord={gameState.targetWord}
+          attemptCount={gameState.attemptCount}
+          maxAttempts={levelConfig.maxAttempts}
+          currentLevel={level}
+          onPlayAgain={handlePlayAgain}
+          onChangeLevel={handleChangeLevel}
+          onBackToLevelSelect={handleBackToLevelSelect}
+        />
+      )}
       <main className={styles.main}>
         <div className={styles.gameHeader}>
           <button
@@ -153,14 +185,6 @@ function GameScreen({
             totalRows={levelConfig.maxAttempts}
           />
 
-          {isGameOver && (
-            <ResultBanner
-              status={gameState.status}
-              targetWord={gameState.targetWord}
-              attemptCount={gameState.attemptCount}
-            />
-          )}
-
           <GuessInput
             ref={inputRef}
             value={gameState.currentGuess}
@@ -169,7 +193,7 @@ function GameScreen({
             onSubmit={handleSubmitGuess}
             onError={handleError}
             disabled={isGameOver}
-            error={inputError || duplicateError}
+            error={inputError || hookInputError}
             wordLength={levelConfig.wordLength}
           />
         </div>
@@ -181,10 +205,6 @@ function GameScreen({
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>("levelSelect");
   const [selectedLevel, setSelectedLevel] = useState<Level>("easy");
-  // Lazily initialise from sessionStorage. Game state is not persisted across page reloads.
-  const [levelStatuses, setLevelStatuses] = useState<Record<Level, LevelStatus>>(() => {
-    return readAllLevelStatuses();
-  });
 
   function handleSelectLevel(level: Level) {
     setSelectedLevel(level);
@@ -193,14 +213,12 @@ export default function Home() {
 
   function handleBack() {
     setCurrentView("levelSelect");
-    // Refresh statuses when returning
-    setLevelStatuses(readAllLevelStatuses());
   }
 
-  const handleGameOver = useCallback(() => {
-    // Refresh statuses when game ends
-    setLevelStatuses(readAllLevelStatuses());
-  }, []);
+  function handleSwitchLevel(newLevel: Level) {
+    setSelectedLevel(newLevel);
+    setCurrentView("game");
+  }
 
   if (currentView === "levelSelect") {
     return (
@@ -209,10 +227,7 @@ export default function Home() {
           <span className={styles.appTitle}>wörtl</span>
         </header>
         <div className={styles.main}>
-          <LevelSelect
-            onSelectLevel={handleSelectLevel}
-            levelStatuses={levelStatuses}
-          />
+          <LevelSelect onSelectLevel={handleSelectLevel} />
         </div>
       </div>
     );
@@ -221,9 +236,10 @@ export default function Home() {
   return (
     <div className={styles.pageWrapper}>
       <GameScreen
+        key={selectedLevel}
         level={selectedLevel}
         onBack={handleBack}
-        onGameOver={handleGameOver}
+        onSwitchLevel={handleSwitchLevel}
       />
     </div>
   );
