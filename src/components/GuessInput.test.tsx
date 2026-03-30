@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { createRef } from "react";
 import GuessInput from "./GuessInput";
 
@@ -7,8 +7,7 @@ function renderInput(overrides: Partial<React.ComponentProps<typeof GuessInput>>
   const ref = createRef<HTMLInputElement>();
   const props = {
     value: "",
-    onLetterInput: vi.fn(),
-    onDelete: vi.fn(),
+    onGuessChange: vi.fn(),
     onSubmit: vi.fn(),
     onError: vi.fn(),
     disabled: false,
@@ -31,33 +30,67 @@ describe("GuessInput", () => {
     expect(screen.getByLabelText("Wort eingeben")).toBeInTheDocument();
   });
 
-  // --- Physical keyboard (keyDown) tests ---
+  // --- onChange-driven input (primary flow) ---
 
-  it("calls onLetterInput with uppercase letter on valid key press", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ onLetterInput });
+  it("calls onGuessChange with uppercase letter when letter is added via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.keyDown(input, { key: "t" });
-    expect(onLetterInput).toHaveBeenCalledWith("T");
+    fireEvent.change(input, { target: { value: "TAN" } });
+    expect(onGuessChange).toHaveBeenCalledWith("TAN");
   });
 
-  it("filters out non-alphabetic characters via keyDown", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ onLetterInput });
+  it("calls onGuessChange with filtered value when deletion occurs via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.keyDown(input, { key: "1" });
-    fireEvent.keyDown(input, { key: " " });
-    fireEvent.keyDown(input, { key: "!" });
-    expect(onLetterInput).not.toHaveBeenCalled();
+    fireEvent.change(input, { target: { value: "TA" } });
+    expect(onGuessChange).toHaveBeenCalledWith("TA");
   });
 
-  it("calls onDelete on Backspace via keyDown", () => {
-    const onDelete = vi.fn();
-    renderInput({ onDelete });
+  it("filters out non-alphabetic characters via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.keyDown(input, { key: "Backspace" });
-    expect(onDelete).toHaveBeenCalled();
+    fireEvent.change(input, { target: { value: "TA1" } });
+    // "1" is filtered, so only "TA" remains
+    expect(onGuessChange).toHaveBeenCalledWith("TA");
   });
+
+  it("uppercases letters added via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", onGuessChange });
+    const input = screen.getByLabelText("Wort eingeben");
+    fireEvent.change(input, { target: { value: "TAn" } });
+    expect(onGuessChange).toHaveBeenCalledWith("TAN");
+  });
+
+  it("enforces word length limit via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TANTE", wordLength: 5, onGuessChange });
+    const input = screen.getByLabelText("Wort eingeben");
+    fireEvent.change(input, { target: { value: "TANTEX" } });
+    // "X" is the 6th char; limited to 5
+    expect(onGuessChange).toHaveBeenCalledWith("TANTE");
+  });
+
+  it("accepts umlaut characters entered via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", onGuessChange });
+    const input = screen.getByLabelText("Wort eingeben");
+    fireEvent.change(input, { target: { value: "TAÄ" } });
+    expect(onGuessChange).toHaveBeenCalledWith("TAÄ");
+  });
+
+  it("calls onGuessChange with empty string when value is cleared via onChange", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
+    const input = screen.getByLabelText("Wort eingeben");
+    fireEvent.change(input, { target: { value: "" } });
+    expect(onGuessChange).toHaveBeenCalledWith("");
+  });
+
+  // --- Submit behavior ---
 
   it("calls onSubmit on Enter when value has 5 characters", () => {
     const onSubmit = vi.fn();
@@ -75,70 +108,76 @@ describe("GuessInput", () => {
     expect(onError).toHaveBeenCalled();
   });
 
-  it("does not call onLetterInput when value already has 5 characters (keyDown)", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TANTE", onLetterInput });
+  // --- Navigation keys pass through (no preventDefault) ---
+
+  it("does not call onGuessChange on ArrowLeft key", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.keyDown(input, { key: "x" });
-    expect(onLetterInput).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "ArrowLeft" });
+    // onGuessChange should not be called for navigation
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
-  it("handles umlaut keys (ä) via keyDown", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ onLetterInput });
+  it("does not call onGuessChange on ArrowRight key", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.keyDown(input, { key: "ä" });
-    expect(onLetterInput).toHaveBeenCalledWith("Ä");
+    fireEvent.keyDown(input, { key: "ArrowRight" });
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
-  // --- Virtual keyboard (onChange) tests ---
-
-  it("calls onLetterInput when a letter is added via onChange (virtual keyboard)", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TA", onLetterInput });
+  it("does not call onGuessChange on Home key", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.change(input, { target: { value: "TAN" } });
-    expect(onLetterInput).toHaveBeenCalledWith("N");
+    fireEvent.keyDown(input, { key: "Home" });
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
-  it("calls onDelete when value length decreases via onChange (virtual keyboard backspace)", () => {
-    const onDelete = vi.fn();
-    renderInput({ value: "TAN", onDelete });
+  it("does not call onGuessChange on End key", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.change(input, { target: { value: "TA" } });
-    expect(onDelete).toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "End" });
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
-  it("rejects non-alphabetic characters entered via onChange", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TA", onLetterInput });
+  it("allows Delete key to pass through (forward-delete handled by onChange)", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.change(input, { target: { value: "TA1" } });
-    expect(onLetterInput).not.toHaveBeenCalled();
+    // Delete key should not be blocked; it'll trigger onChange if there's content after caret
+    const event = fireEvent.keyDown(input, { key: "Delete" });
+    // The key event should not be prevented (defaultPrevented is false)
+    expect(event).toBe(true); // fireEvent returns true when event was not prevented
   });
 
-  it("uppercases letters added via onChange", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TA", onLetterInput });
+  it("allows Backspace key to pass through (handled by onChange)", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAN", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.change(input, { target: { value: "TAn" } });
-    expect(onLetterInput).toHaveBeenCalledWith("N");
+    const event = fireEvent.keyDown(input, { key: "Backspace" });
+    // Should not be prevented
+    expect(event).toBe(true);
   });
 
-  it("does not call onLetterInput via onChange when value is already at wordLength", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TANTE", wordLength: 5, onLetterInput });
+  // --- Non-alphabetic key blocking ---
+
+  it("does not call onGuessChange on numeric key press (blocked by keyDown)", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.change(input, { target: { value: "TANTEX" } });
-    expect(onLetterInput).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: "1" });
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
-  it("accepts umlaut characters entered via onChange", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TA", onLetterInput });
+  it("does not call onGuessChange on space key press (blocked by keyDown)", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.change(input, { target: { value: "TAÄ" } });
-    expect(onLetterInput).toHaveBeenCalledWith("Ä");
+    fireEvent.keyDown(input, { key: " " });
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
   // --- Disabled state ---
@@ -148,12 +187,12 @@ describe("GuessInput", () => {
     expect(screen.getByLabelText("Wort eingeben")).toBeDisabled();
   });
 
-  it("does not call onLetterInput when disabled (onChange)", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "TA", disabled: true, onLetterInput });
+  it("does not call onGuessChange when disabled (onChange)", () => {
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TA", disabled: true, onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
     fireEvent.change(input, { target: { value: "TAN" } });
-    expect(onLetterInput).not.toHaveBeenCalled();
+    expect(onGuessChange).not.toHaveBeenCalled();
   });
 
   // --- Appearance ---
@@ -189,19 +228,18 @@ describe("GuessInput", () => {
   });
 
   it("accepts up to wordLength characters when wordLength is 8", () => {
-    const onLetterInput = vi.fn();
-    renderInput({ value: "SCHULBUC", wordLength: 8, onLetterInput });
+    const onGuessChange = vi.fn();
+    renderInput({ value: "SCHULBUC", wordLength: 8, onGuessChange });
     const input = screen.getByLabelText("Wort eingeben");
-    // With 8 chars already, adding more should not call onLetterInput
-    fireEvent.keyDown(input, { key: "h" });
-    expect(onLetterInput).not.toHaveBeenCalled();
+    // With 8 chars already, adding one more should limit to 8
+    fireEvent.change(input, { target: { value: "SCHULBUCH" } });
+    expect(onGuessChange).toHaveBeenCalledWith("SCHULBUC");
   });
 
   it("calls onSubmit when wordLength is 8 and value has 8 characters", () => {
     const onSubmit = vi.fn();
     renderInput({ value: "SCHULBUC", wordLength: 8, onSubmit });
     const input = screen.getByLabelText("Wort eingeben");
-    // Wait, we need exactly 8 chars - SCHULBUC is 8
     fireEvent.keyDown(input, { key: "Enter" });
     expect(onSubmit).toHaveBeenCalled();
   });
@@ -240,5 +278,59 @@ describe("GuessInput", () => {
     renderInput();
     const input = screen.getByLabelText("Wort eingeben");
     expect(input).not.toHaveAttribute("readonly");
+  });
+
+  // --- Caret position restoration ---
+
+  it("calls onGuessChange with correctly filtered value when typing at mid-caret position", () => {
+    // Simulates what happens when the user inserts a character in the middle of the input.
+    // The native input produces a new full string value; we verify onGuessChange gets the right filtered value.
+    const onGuessChange = vi.fn();
+    renderInput({ value: "TAE", onGuessChange });
+
+    const input = screen.getByLabelText("Wort eingeben");
+
+    // Simulate caret placed at position 2 (between A and E), then user types "N"
+    // resulting in "TANE" from the native input at selectionStart=3.
+    // We use fireEvent.change with an init object that overrides selectionStart on the target.
+    fireEvent.change(input, { target: { value: "TANE", selectionStart: 3, selectionEnd: 3 } });
+
+    // onGuessChange should be called with "TANE" (all valid letters, already uppercase)
+    expect(onGuessChange).toHaveBeenCalledWith("TANE");
+  });
+
+  // --- Post-submission reset ---
+
+  it("caret is at position 0 after value prop changes to empty string", () => {
+    const ref = createRef<HTMLInputElement>();
+    const { rerender } = render(
+      <GuessInput
+        ref={ref}
+        value="TANTE"
+        onGuessChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onError={vi.fn()}
+        disabled={false}
+        error={false}
+        wordLength={5}
+      />
+    );
+
+    // Simulate submission: value becomes empty
+    rerender(
+      <GuessInput
+        ref={ref}
+        value=""
+        onGuessChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onError={vi.fn()}
+        disabled={false}
+        error={false}
+        wordLength={5}
+      />
+    );
+
+    // Caret should be at position 0
+    expect(ref.current?.selectionStart).toBe(0);
   });
 });

@@ -60,14 +60,12 @@ vi.mock("@/lib/dictLoader", () => ({
   loadValidationDict: vi.fn(),
 }));
 
-// Helper: type a word letter by letter
-function typeWord(
+// Helper: set a guess all at once using setGuess
+function setWord(
   result: ReturnType<typeof renderHook<ReturnType<typeof useGame>, Parameters<typeof useGame>[0]>>["result"],
   word: string
 ) {
-  for (const ch of word) {
-    act(() => result.current.addLetter(ch));
-  }
+  act(() => result.current.setGuess(word));
 }
 
 describe("useGame", () => {
@@ -87,48 +85,60 @@ describe("useGame", () => {
     expect(result.current.gameState.attemptCount).toBe(0);
   });
 
-  it("adds letters to currentGuess", () => {
+  it("sets currentGuess via setGuess", () => {
     const { result } = renderHook(() => useGame("easy"));
-    act(() => result.current.addLetter("T"));
-    act(() => result.current.addLetter("A"));
+    act(() => result.current.setGuess("TA"));
     expect(result.current.gameState.currentGuess).toBe("TA");
   });
 
-  it("deletes last letter from currentGuess", () => {
+  it("setGuess converts to uppercase", () => {
     const { result } = renderHook(() => useGame("easy"));
-    act(() => result.current.addLetter("T"));
-    act(() => result.current.addLetter("A"));
-    act(() => result.current.deleteLetter());
-    expect(result.current.gameState.currentGuess).toBe("T");
+    act(() => result.current.setGuess("ta"));
+    expect(result.current.gameState.currentGuess).toBe("TA");
   });
 
-  it("does not add letter beyond word length (5 for easy)", () => {
+  it("setGuess filters out non-alphabetic characters", () => {
     const { result } = renderHook(() => useGame("easy"));
-    act(() => {
-      result.current.addLetter("T");
-      result.current.addLetter("A");
-      result.current.addLetter("N");
-      result.current.addLetter("T");
-      result.current.addLetter("E");
-      result.current.addLetter("X"); // 6th letter, should be ignored
-    });
-    expect(Array.from(result.current.gameState.currentGuess)).toHaveLength(5);
+    act(() => result.current.setGuess("T1A!N"));
+    expect(result.current.gameState.currentGuess).toBe("TAN");
   });
 
-  it("does not add letter beyond word length (8 for normal)", () => {
+  it("setGuess does not exceed word length (5 for easy)", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.setGuess("TANTEX")); // 6 chars
+    // Should be rejected entirely since filtered length > wordLength
+    expect(Array.from(result.current.gameState.currentGuess)).toHaveLength(0);
+  });
+
+  it("setGuess with exactly wordLength characters is accepted", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.setGuess("TANTE"));
+    expect(result.current.gameState.currentGuess).toBe("TANTE");
+  });
+
+  it("setGuess with empty string clears the guess", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.setGuess("TA"));
+    act(() => result.current.setGuess(""));
+    expect(result.current.gameState.currentGuess).toBe("");
+  });
+
+  it("setGuess does not exceed word length (8 for normal)", () => {
     const { result } = renderHook(() => useGame("normal"));
-    act(() => {
-      for (const ch of "SCHULBUCHX") {
-        result.current.addLetter(ch);
-      }
-    });
+    act(() => result.current.setGuess("SCHULBUCHX")); // 9 chars - rejected
+    expect(result.current.gameState.currentGuess).toBe("");
+  });
+
+  it("setGuess with 8 chars accepted for normal level", () => {
+    const { result } = renderHook(() => useGame("normal"));
+    act(() => result.current.setGuess("SCHULBUCH".slice(0, 8)));
     expect(Array.from(result.current.gameState.currentGuess)).toHaveLength(8);
   });
 
   it("shows toast for too-short submission", () => {
     const { result } = renderHook(() => useGame("easy"));
     act(() => {
-      result.current.addLetter("T");
+      result.current.setGuess("T");
       result.current.submitGuess();
     });
     expect(result.current.toastMessage).toBe("Wort muss 5 Buchstaben haben.");
@@ -136,11 +146,9 @@ describe("useGame", () => {
   });
 
   it("first guess triggers dictionary loading and guess is automatically submitted after load", async () => {
-    // Verify the loading state indirectly: submit a valid guess, wait for the
-    // dict to load (the mock resolves immediately), then verify the guess was submitted.
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     // Wait for the guess to be automatically submitted after the dict loads.
@@ -153,16 +161,13 @@ describe("useGame", () => {
   it("after dictionary loads, the pending guess is validated and submitted", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
-    // Wait for the async dict load and the pending-guess processing to complete.
-    // The mock resolves immediately, so waitFor should resolve quickly.
     await waitFor(() => {
       expect(result.current.gameState.guesses).toHaveLength(1);
     });
 
-    // The guess should have been submitted automatically
     expect(result.current.gameState.attemptCount).toBe(1);
     expect(result.current.gameState.currentGuess).toBe("");
     expect(result.current.isDictLoading).toBe(false);
@@ -170,7 +175,7 @@ describe("useGame", () => {
 
   it("submits a valid guess and adds to guesses (after dict loads)", async () => {
     const { result } = renderHook(() => useGame("easy"));
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -182,7 +187,7 @@ describe("useGame", () => {
 
   it("wins when guessing the correct word (easy)", async () => {
     const { result } = renderHook(() => useGame("easy"));
-    act(() => typeWord(result, "TANTE"));
+    act(() => setWord(result, "TANTE"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -192,7 +197,7 @@ describe("useGame", () => {
 
   it("wins when guessing the correct word (normal, 8 letters)", async () => {
     const { result } = renderHook(() => useGame("normal"));
-    act(() => typeWord(result, "ABENDROT"));
+    act(() => setWord(result, "ABENDROT"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -207,13 +212,13 @@ describe("useGame", () => {
     ];
 
     // First guess triggers dict load; wait for it
-    act(() => typeWord(result, wrongGuesses[0]!));
+    act(() => setWord(result, wrongGuesses[0]!));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
 
     // Subsequent guesses – dict is now loaded
     for (let i = 1; i < wrongGuesses.length; i++) {
-      act(() => typeWord(result, wrongGuesses[i]!));
+      act(() => setWord(result, wrongGuesses[i]!));
       act(() => result.current.submitGuess());
     }
 
@@ -223,12 +228,12 @@ describe("useGame", () => {
 
   it("does not accept input after game is won", async () => {
     const { result } = renderHook(() => useGame("easy"));
-    act(() => typeWord(result, "TANTE"));
+    act(() => setWord(result, "TANTE"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.gameState.status).toBe("won"));
 
-    act(() => result.current.addLetter("X"));
+    act(() => result.current.setGuess("BROTE"));
     expect(result.current.gameState.currentGuess).toBe("");
   });
 
@@ -236,12 +241,12 @@ describe("useGame", () => {
     const { result } = renderHook(() => useGame("easy"));
 
     // First submission
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.gameState.guesses).toHaveLength(1));
 
     // Second submission of same word
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     expect(result.current.toastMessage).toBe("Du hast dieses Wort bereits geraten.");
@@ -250,11 +255,11 @@ describe("useGame", () => {
   it("does not increment attemptCount or add a new row when submitting a duplicate", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.gameState.attemptCount).toBe(1));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     expect(result.current.gameState.attemptCount).toBe(1);
@@ -264,11 +269,11 @@ describe("useGame", () => {
   it("preserves currentGuess after a duplicate submission", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.gameState.guesses).toHaveLength(1));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     expect(result.current.gameState.currentGuess).toBe("BROTE");
@@ -277,12 +282,12 @@ describe("useGame", () => {
   it("duplicate check is case-insensitive", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.gameState.guesses).toHaveLength(1));
 
-    // addLetter converts to uppercase internally
-    act(() => typeWord(result, "brote"));
+    // setGuess converts to uppercase internally
+    act(() => setWord(result, "brote"));
     act(() => result.current.submitGuess());
 
     expect(result.current.toastMessage).toBe("Du hast dieses Wort bereits geraten.");
@@ -292,14 +297,30 @@ describe("useGame", () => {
   it("sets inputError to true on a duplicate submission", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.gameState.guesses).toHaveLength(1));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     expect(result.current.inputError).toBe(true);
+  });
+
+  // --- Umlaut handling in setGuess ---
+
+  it("setGuess handles umlaut characters (single unicode codepoints) correctly", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    // ä, ö, ü, ß are single codepoints and should each count as one character
+    act(() => result.current.setGuess("ÄÖÜSS"));
+    expect(Array.from(result.current.gameState.currentGuess)).toHaveLength(5);
+    expect(result.current.gameState.currentGuess).toBe("ÄÖÜSS");
+  });
+
+  it("setGuess with umlauts converts ä to Ä", () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => result.current.setGuess("äöü"));
+    expect(result.current.gameState.currentGuess).toBe("ÄÖÜ");
   });
 
   // --- Dictionary validation tests ---
@@ -308,7 +329,7 @@ describe("useGame", () => {
     const { result } = renderHook(() => useGame("easy"));
 
     // "XYZQW" is not in the mock easy validation dict
-    act(() => typeWord(result, "XYZQW"));
+    act(() => setWord(result, "XYZQW"));
     act(() => result.current.submitGuess());
 
     // Wait for dict to load and the rejection to be processed
@@ -320,7 +341,7 @@ describe("useGame", () => {
   it("does not consume a turn when submitting a word not in the validation dict", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "XYZQW"));
+    act(() => setWord(result, "XYZQW"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -332,7 +353,7 @@ describe("useGame", () => {
   it("sets inputError to true when submitting a word not in the validation dict", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "XYZQW"));
+    act(() => setWord(result, "XYZQW"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -343,7 +364,7 @@ describe("useGame", () => {
   it("preserves currentGuess after a dictionary rejection", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "XYZQW"));
+    act(() => setWord(result, "XYZQW"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -355,11 +376,11 @@ describe("useGame", () => {
   it("shows the duplicate message (not the dictionary message) for a duplicate valid word", async () => {
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
     await waitFor(() => expect(result.current.gameState.guesses).toHaveLength(1));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     expect(result.current.toastMessage).toBe("Du hast dieses Wort bereits geraten.");
@@ -379,12 +400,9 @@ describe("useGame", () => {
   });
 
   it("loading toast is shown and then cleared when dictionary loads successfully", async () => {
-    // The "Wortliste wird geladen..." toast is shown while loading.
-    // After the dict loads (mock resolves immediately), the toast is cleared
-    // and the pending guess is submitted.
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     // After loading completes, the guess is submitted and the loading toast is gone.
@@ -399,7 +417,7 @@ describe("useGame", () => {
 
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BROTE"));
+    act(() => setWord(result, "BROTE"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictError).toBe(true));
@@ -413,7 +431,7 @@ describe("useGame", () => {
     // the mock solution pool (getWordList("easy")).
     const { result } = renderHook(() => useGame("easy"));
 
-    act(() => typeWord(result, "BAUCH"));
+    act(() => setWord(result, "BAUCH"));
     act(() => result.current.submitGuess());
 
     await waitFor(() => expect(result.current.isDictLoading).toBe(false));
@@ -422,5 +440,17 @@ describe("useGame", () => {
     expect(result.current.gameState.guesses).toHaveLength(1);
     expect(result.current.gameState.attemptCount).toBe(1);
     expect(result.current.toastMessage).not.toBe("Wort nicht im Wörterbuch");
+  });
+
+  // --- Post-submission reset test ---
+
+  it("currentGuess resets to empty string after SUBMIT_GUESS", async () => {
+    const { result } = renderHook(() => useGame("easy"));
+    act(() => setWord(result, "BROTE"));
+    act(() => result.current.submitGuess());
+
+    await waitFor(() => expect(result.current.gameState.guesses).toHaveLength(1));
+
+    expect(result.current.gameState.currentGuess).toBe("");
   });
 });

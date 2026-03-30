@@ -8,9 +8,11 @@ import { getDailyWord } from "@/lib/dailyWord";
 import { isWordInValidationDict } from "@/lib/wordList";
 import { loadValidationDict } from "@/lib/dictLoader";
 
+// Valid German letters including umlauts
+const VALID_LETTER_REGEX = /^[a-zA-ZäöüÄÖÜß]$/;
+
 type Action =
-  | { type: "ADD_LETTER"; letter: string }
-  | { type: "DELETE_LETTER" }
+  | { type: "SET_GUESS"; guess: string }
   | { type: "SUBMIT_GUESS" };
 
 type ReducerConfig = {
@@ -35,15 +37,13 @@ function makeGameReducer(config: ReducerConfig) {
     if (state.status !== "playing") return state;
 
     switch (action.type) {
-      case "ADD_LETTER": {
-        const currentChars = Array.from(state.currentGuess);
-        if (currentChars.length >= config.wordLength) return state;
-        return { ...state, currentGuess: state.currentGuess + action.letter };
-      }
-      case "DELETE_LETTER": {
-        const chars = Array.from(state.currentGuess);
-        if (chars.length === 0) return state;
-        return { ...state, currentGuess: chars.slice(0, -1).join("") };
+      case "SET_GUESS": {
+        // Filter to valid letters only and enforce word length limit
+        const filtered = Array.from(action.guess)
+          .filter((ch) => VALID_LETTER_REGEX.test(ch))
+          .map((ch) => ch.toUpperCase());
+        if (filtered.length > config.wordLength) return state;
+        return { ...state, currentGuess: filtered.join("") };
       }
       case "SUBMIT_GUESS": {
         const currentChars = Array.from(state.currentGuess);
@@ -77,8 +77,7 @@ function makeGameReducer(config: ReducerConfig) {
 
 export type UseGameReturn = {
   gameState: GameState;
-  addLetter: (letter: string) => void;
-  deleteLetter: () => void;
+  setGuess: (newGuess: string) => void;
   submitGuess: () => void;
   toastMessage: string | null;
   /** True while the input-error shake animation should be active. */
@@ -122,12 +121,8 @@ export function useGame(level: Level = "easy"): UseGameReturn {
     gameStateRef.current = gameState;
   });
 
-  const addLetter = useCallback((letter: string) => {
-    dispatch({ type: "ADD_LETTER", letter: letter.toUpperCase() });
-  }, []);
-
-  const deleteLetter = useCallback(() => {
-    dispatch({ type: "DELETE_LETTER" });
+  const setGuess = useCallback((newGuess: string) => {
+    dispatch({ type: "SET_GUESS", guess: newGuess });
   }, []);
 
   /**
@@ -272,8 +267,7 @@ export function useGame(level: Level = "easy"): UseGameReturn {
 
   return {
     gameState,
-    addLetter,
-    deleteLetter,
+    setGuess,
     submitGuess,
     toastMessage,
     inputError,

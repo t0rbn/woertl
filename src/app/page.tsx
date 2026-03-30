@@ -68,8 +68,7 @@ function GameScreen({
 }) {
   const {
     gameState,
-    addLetter,
-    deleteLetter,
+    setGuess,
     submitGuess,
     toastMessage,
     inputError: hookInputError,
@@ -112,12 +111,8 @@ function GameScreen({
     requestAnimationFrame(() => focusInput());
   }
 
-  function handleLetterInput(letter: string) {
-    addLetter(letter);
-  }
-
-  function handleDelete() {
-    deleteLetter();
+  function handleGuessChange(newValue: string) {
+    setGuess(newValue);
   }
 
   function handleError() {
@@ -181,8 +176,7 @@ function GameScreen({
           <GuessInput
             ref={inputRef}
             value={gameState.currentGuess}
-            onLetterInput={handleLetterInput}
-            onDelete={handleDelete}
+            onGuessChange={handleGuessChange}
             onSubmit={handleSubmitGuess}
             onError={handleError}
             disabled={isGameOver || isDictLoading || isDictError}
