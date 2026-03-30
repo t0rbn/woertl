@@ -99,6 +99,7 @@ export default function TileGrid({
                     feedback={null}
                     isActiveRow={true}
                     sizeClass={tileSizeClass}
+                    wobbleDelay={colIndex * 70}
                   />
                 );
               } else {
