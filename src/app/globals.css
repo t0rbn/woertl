@@ -38,6 +38,10 @@
   --color-cb-present: #b88a00;
   --color-cb-absent: #4a2d6b;
 
+  /* Secondary accent colors (gradient endpoints only) */
+  --color-accent-teal: #00bcd4;
+  --color-accent-rose: #e040fb;
+
   /* Typography */
   --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
 
@@ -69,14 +73,14 @@
   --animation-duration: 500ms;
 
   /* Effect & animation tokens */
-  --glow-primary: 0 0 18px rgba(124, 77, 255, 0.65);
+  --glow-primary: 0 0 18px rgba(0, 188, 212, 0.45), 0 0 36px rgba(124, 77, 255, 0.35);
   --glow-correct: 0 0 14px rgba(58, 140, 92, 0.55);
   --glow-present: 0 0 14px rgba(192, 122, 30, 0.55);
-  --glow-header: 0 0 28px rgba(206, 147, 216, 0.4);
-  --gradient-surface: linear-gradient(145deg, #3d007a 0%, #2b0057 60%, #1f003f 100%);
-  --gradient-bg: radial-gradient(ellipse at 50% -10%, #3d007a 0%, #1a0033 55%);
-  --gradient-tile-empty: linear-gradient(160deg, #311064 0%, #2b0057 100%);
-  --shimmer-color: rgba(206, 147, 216, 0.15);
+  --glow-header: 0 0 28px rgba(224, 64, 251, 0.35), 0 0 56px rgba(206, 147, 216, 0.2);
+  --gradient-surface: linear-gradient(145deg, #3d007a 0%, #1f003f 55%, #0d1a2e 100%);
+  --gradient-bg: radial-gradient(ellipse at 50% -10%, #3d007a 0%, #1a0033 50%, #001020 100%);
+  --gradient-tile-empty: linear-gradient(160deg, #3d007a 0%, #00354d 100%);
+  --shimmer-color: rgba(0, 188, 212, 0.18);
   --glow-correct-cb: 0 0 14px rgba(45, 111, 168, 0.55);
   --glow-present-cb: 0 0 14px rgba(184, 138, 0, 0.55);
 }
