@@ -67,6 +67,18 @@
 
   /* Animation duration – set to 0s via prefers-reduced-motion */
   --animation-duration: 500ms;
+
+  /* Effect & animation tokens */
+  --glow-primary: 0 0 18px rgba(124, 77, 255, 0.65);
+  --glow-correct: 0 0 14px rgba(58, 140, 92, 0.55);
+  --glow-present: 0 0 14px rgba(192, 122, 30, 0.55);
+  --glow-header: 0 0 28px rgba(206, 147, 216, 0.4);
+  --gradient-surface: linear-gradient(145deg, #3d007a 0%, #2b0057 60%, #1f003f 100%);
+  --gradient-bg: radial-gradient(ellipse at 50% -10%, #3d007a 0%, #1a0033 55%);
+  --gradient-tile-empty: linear-gradient(160deg, #311064 0%, #2b0057 100%);
+  --shimmer-color: rgba(206, 147, 216, 0.15);
+  --glow-correct-cb: 0 0 14px rgba(45, 111, 168, 0.55);
+  --glow-present-cb: 0 0 14px rgba(184, 138, 0, 0.55);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -105,7 +117,7 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg);
+  background: var(--gradient-bg, var(--color-bg));
   color: var(--color-text);
   font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;

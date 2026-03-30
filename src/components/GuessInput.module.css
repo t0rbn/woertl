@@ -7,8 +7,9 @@
 }
 
 .input {
-  background-color: var(--color-surface-raised);
+  background: linear-gradient(145deg, var(--color-surface-raised) 0%, var(--color-surface) 100%);
   border: 2px solid var(--color-primary-dark);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   border-radius: 8px;
   color: var(--color-text);
   font-family: var(--font-main);
