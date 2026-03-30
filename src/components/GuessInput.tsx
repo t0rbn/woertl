@@ -1,12 +1,11 @@
 "use client";
 
-import { forwardRef, useEffect, useRef } from "react";
+import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
 import styles from "./GuessInput.module.css";
 
 type GuessInputProps = {
   value: string;
-  onLetterInput: (letter: string) => void;
-  onDelete: () => void;
+  onGuessChange: (newValue: string) => void;
   onSubmit: () => void;
   onError: () => void;
   disabled: boolean;
@@ -19,11 +18,11 @@ const VALID_LETTER_REGEX = /^[a-zA-ZäöüÄÖÜß]$/;
 
 const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
   function GuessInput(
-    { value, onLetterInput, onDelete, onSubmit, onError, disabled, error, wordLength = 5 },
+    { value, onGuessChange, onSubmit, onError, disabled, error, wordLength = 5 },
     ref
   ) {
-    // Track whether the most recent input came from keyDown so onChange can skip it
-    const keyHandledRef = useRef(false);
+    // Store the intended caret position to restore after controlled re-render
+    const caretPosRef = useRef<number>(0);
 
     // Auto-focus on mount
     useEffect(() => {
@@ -32,37 +31,57 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       }
     }, [ref]);
 
-    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-      // If the keystroke was already fully handled by handleKeyDown, skip processing here
-      if (keyHandledRef.current) {
-        keyHandledRef.current = false;
-        return;
+    // Restore caret position after each render where value may have changed.
+    // useLayoutEffect runs synchronously after DOM mutations, before the browser paints,
+    // which prevents visible caret jumps.
+    useLayoutEffect(() => {
+      if (ref && "current" in ref && ref.current) {
+        const input = ref.current;
+        const pos = Math.min(caretPosRef.current, input.value.length);
+        input.setSelectionRange(pos, pos);
       }
+    });
 
+    function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
       if (disabled) return;
 
-      const newValue = e.target.value;
-      const oldValue = value;
+      const rawValue = e.target.value;
+      // Capture the caret position from the raw input before filtering
+      const rawCaretPos = e.target.selectionStart ?? rawValue.length;
 
-      // Detect deletion: new value is shorter than old value
-      if (newValue.length < oldValue.length) {
-        onDelete();
-        return;
-      }
+      // Filter to valid letters only and convert to uppercase
+      const chars = Array.from(rawValue);
+      const filtered: string[] = [];
+      let charsBeforeCaret = 0;
+      let filteredBeforeCaret = 0;
 
-      // Detect addition: new value is longer (one or more characters added)
-      if (newValue.length > oldValue.length) {
-        // Process each newly added character
-        const addedPart = newValue.slice(oldValue.length);
-        for (const char of addedPart) {
-          if (VALID_LETTER_REGEX.test(char) && value.length < wordLength) {
-            onLetterInput(char.toUpperCase());
+      for (let i = 0; i < chars.length; i++) {
+        const ch = chars[i]!;
+        if (VALID_LETTER_REGEX.test(ch)) {
+          filtered.push(ch.toUpperCase());
+          if (i < rawCaretPos) {
+            filteredBeforeCaret++;
+          }
+        } else {
+          // Count how many chars before the caret were removed (non-alphabetic)
+          if (i < rawCaretPos) {
+            charsBeforeCaret++;
           }
         }
-        return;
       }
 
-      // If lengths are equal, no actionable change (e.g. composition events)
+      // Enforce word length limit
+      const limitedFiltered = filtered.slice(0, wordLength);
+
+      // Calculate new caret position after filtering:
+      // caret pos = number of valid chars before original caret, capped at word length
+      const newCaretPos = Math.min(filteredBeforeCaret, wordLength);
+      caretPosRef.current = newCaretPos;
+
+      // Suppress unused variable warning
+      void charsBeforeCaret;
+
+      onGuessChange(limitedFiltered.join(""));
     }
 
     function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -72,7 +91,9 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
       if (e.nativeEvent.isComposing) return;
 
       if (e.key === "Enter") {
-        keyHandledRef.current = true;
+        if (ref && "current" in ref && ref.current) {
+          caretPosRef.current = ref.current.selectionStart ?? value.length;
+        }
         if (value.length === wordLength) {
           onSubmit();
         } else {
@@ -81,27 +102,28 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
         return;
       }
 
-      if (e.key === "Backspace") {
-        keyHandledRef.current = true;
-        onDelete();
+      // Allow navigation keys to pass through to the native input without preventDefault:
+      // ArrowLeft, ArrowRight, Home, End, Delete, Tab, Escape
+      const navigationKeys = ["ArrowLeft", "ArrowRight", "Home", "End", "Delete", "Tab", "Escape", "Backspace"];
+      if (navigationKeys.includes(e.key)) {
+        // Update caret position ref after navigation/deletion
+        // We schedule this for after the browser processes the key
+        requestAnimationFrame(() => {
+          if (ref && "current" in ref && ref.current) {
+            caretPosRef.current = ref.current.selectionStart ?? 0;
+          }
+        });
+        return;
+      }
+
+      // For single printable characters that fail the letter regex, block them
+      if (e.key.length === 1 && !VALID_LETTER_REGEX.test(e.key)) {
         e.preventDefault();
         return;
       }
 
-      if (e.key.length === 1 && VALID_LETTER_REGEX.test(e.key)) {
-        keyHandledRef.current = true;
-        if (value.length < wordLength) {
-          onLetterInput(e.key.toUpperCase());
-        }
-        e.preventDefault();
-        return;
-      }
-
-      // Block all other keys that would produce output
-      if (e.key.length === 1) {
-        keyHandledRef.current = true;
-        e.preventDefault();
-      }
+      // For valid letters, update caret position (will be handled by onChange)
+      // Let them pass through to the native input so onChange fires
     }
 
     const isFull = value.length === wordLength;

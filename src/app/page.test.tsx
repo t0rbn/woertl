@@ -32,6 +32,16 @@ function selectEasyLevel() {
   fireEvent.click(screen.getByRole("button", { name: /Einfach/i }));
 }
 
+// Helper: simulate typing a word into the input via onChange events,
+// building up the value character by character.
+function typeWordViaChange(input: HTMLElement, word: string) {
+  let current = "";
+  for (const ch of word) {
+    current += ch;
+    fireEvent.change(input, { target: { value: current } });
+  }
+}
+
 describe("Home page – integration", () => {
   it("renders the level selection screen on load", () => {
     render(<Home />);
@@ -74,9 +84,8 @@ describe("Home page – integration", () => {
     render(<Home />);
     selectEasyLevel();
     const input = screen.getByLabelText("Wort eingeben");
-    fireEvent.keyDown(input, { key: "t" });
-    fireEvent.keyDown(input, { key: "a" });
-    fireEvent.keyDown(input, { key: "n" });
+    // Type only 3 letters via onChange
+    typeWordViaChange(input, "tan");
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(await screen.findByText("Wort muss 5 Buchstaben haben.")).toBeInTheDocument();
@@ -86,12 +95,8 @@ describe("Home page – integration", () => {
     render(<Home />);
     selectEasyLevel();
     const input = screen.getByLabelText("Wort eingeben");
-    // Type BROTE (wrong guess)
-    fireEvent.keyDown(input, { key: "b" });
-    fireEvent.keyDown(input, { key: "r" });
-    fireEvent.keyDown(input, { key: "o" });
-    fireEvent.keyDown(input, { key: "t" });
-    fireEvent.keyDown(input, { key: "e" });
+    // Type BROTE (wrong guess) via onChange
+    typeWordViaChange(input, "brote");
     fireEvent.keyDown(input, { key: "Enter" });
 
     // After submission, tiles with feedback should appear.
@@ -107,8 +112,7 @@ describe("Home page – integration", () => {
     render(<Home />);
     selectEasyLevel();
     const input = screen.getByLabelText("Wort eingeben");
-    const letters = ["t", "a", "n", "t", "e"];
-    letters.forEach((key) => fireEvent.keyDown(input, { key }));
+    typeWordViaChange(input, "tante");
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(await screen.findByText("Richtig! Du hast das Wort erraten.")).toBeInTheDocument();
@@ -118,8 +122,7 @@ describe("Home page – integration", () => {
     render(<Home />);
     selectEasyLevel();
     const input = screen.getByLabelText("Wort eingeben");
-    const letters = ["t", "a", "n", "t", "e"];
-    letters.forEach((key) => fireEvent.keyDown(input, { key }));
+    typeWordViaChange(input, "tante");
     fireEvent.keyDown(input, { key: "Enter" });
 
     await screen.findByText("Richtig! Du hast das Wort erraten.");
@@ -132,25 +135,19 @@ describe("Home page – integration", () => {
     selectEasyLevel();
     const input = screen.getByLabelText("Wort eingeben");
     // Use 6 different 5-letter words to avoid triggering duplicate validation
-    const wrongGuesses = [
-      ["b", "r", "o", "t", "e"],
-      ["k", "r", "i", "s", "e"],
-      ["l", "a", "m", "p", "e"],
-      ["h", "u", "n", "d", "e"],
-      ["v", "o", "g", "e", "l"],
-      ["m", "u", "s", "i", "k"],
-    ];
+    const wrongGuesses = ["brote", "krise", "lampe", "hunde", "vogel", "musik"];
 
     // First guess triggers async dict loading; wait for it to complete
     const [firstGuess, ...restGuesses] = wrongGuesses;
-    firstGuess!.forEach((key) => fireEvent.keyDown(input, { key }));
+    typeWordViaChange(input, firstGuess!);
     fireEvent.keyDown(input, { key: "Enter" });
     // Wait for the dict to load and the first guess to be submitted
     await screen.findByLabelText("B, nicht im Wort");
 
     // Remaining guesses – dict is now loaded
     for (const guess of restGuesses) {
-      guess.forEach((key) => fireEvent.keyDown(input, { key }));
+      // After each submission the input value is cleared; type the next word
+      typeWordViaChange(input, guess);
       fireEvent.keyDown(input, { key: "Enter" });
     }
 
