@@ -18,32 +18,35 @@
 /* Design Tokens – wörtl */
 :root {
   /* Background tokens */
-  --color-bg: #ede7f6;
-  --color-surface: #f3eeff;
-  --color-surface-raised: #ffffffcc;
+  --color-bg: #1a0033;
+  --color-surface: #2b0057;
+  --color-surface-raised: #3d007a;
 
-  /* Primary (Aqua/Teal) */
-  --color-primary: #006670;
-  --color-primary-light: #00838f;
+  /* Primary */
+  --color-primary: #7c4dff;
+  --color-primary-light: #ce93d8;
 
   /* Semantic tile colors */
-  --color-correct: #2e7d32;
-  --color-present: #e65100;
-  --color-absent: #b0a0c8;
+  --color-correct: #3a8c5c;
+  --color-present: #c07a1e;
+  --color-absent: #4a2d6b;
 
   /* Error */
-  --color-error: #c62828;
+  --color-error: #ef5350;
 
   /* Text tokens */
-  --color-text-primary: #1a0044;
+  --color-text-primary: #f0e6ff;
   --color-text-on-primary: #ffffff;
   --color-text-on-tile: #ffffff;
-  --color-text-on-absent: #2d1b4e;
+  --color-text-on-absent: #b39ddb;
+
+  /* Letter color tokens for filled/active tiles */
+  --color-letter-default: #3a8c5c;
+  --color-letter-default-cb: #2d6fa8;
 
   /* Accent tokens (decorative only – gradients only, not semantic) */
-  --color-accent-orange: #ff6d00;
-  --color-accent-orange-light: #ffab40;
-  --color-accent-teal: #00acc1;
+  --color-accent-teal: #00bcd4;
+  --color-accent-rose: #e040fb;
 
   /* Typography */
   --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
@@ -64,38 +67,38 @@
   --radius-card: 12px;
   --radius-key: 4px;
 
-  /* Level icon background tokens – light tints for light theme */
-  --color-level-easy-bg: #c8e6c9;
-  --color-level-easy-fg: #1b5e20;
-  --color-level-normal-bg: #ffe0b2;
-  --color-level-normal-fg: #bf360c;
-  --color-level-hard-bg: #fce4ec;
-  --color-level-hard-fg: #880e4f;
+  /* Level icon background tokens – dark theme tints */
+  --color-level-easy-bg: #1b4d2e;
+  --color-level-easy-fg: #a5d6a7;
+  --color-level-normal-bg: #4a2000;
+  --color-level-normal-fg: #ffcc80;
+  --color-level-hard-bg: #4a0030;
+  --color-level-hard-fg: #f48fb1;
 
   /* Animation duration – set to 0s via prefers-reduced-motion */
   --animation-duration: 500ms;
 
   /* Gradient tokens */
-  --gradient-bg: radial-gradient(ellipse at 50% -10%, #d1c4e9 0%, #ede7f6 55%, #e8f5e9 100%);
-  --gradient-surface: linear-gradient(145deg, #f3eeff 0%, #ede7f6 60%, #e0f7fa 100%);
-  --gradient-tile-empty: linear-gradient(160deg, #e8e0f5 0%, #b2ebf2 100%);
+  --gradient-bg: radial-gradient(ellipse at 15% 20%, rgba(224, 64, 251, 0.55) 0%, transparent 45%), radial-gradient(ellipse at 85% 80%, rgba(0, 100, 255, 0.45) 0%, transparent 40%), radial-gradient(ellipse at 80% 10%, rgba(57, 255, 20, 0.25) 0%, transparent 35%), radial-gradient(ellipse at 50% -10%, #3d007a 0%, #1a0033 50%, #001020 100%);
+  --gradient-surface: linear-gradient(145deg, #3d007a 0%, #6a0080 30%, #00354d 100%);
+  --gradient-tile-empty: linear-gradient(160deg, #5a007a 0%, #1a0040 50%, #003040 100%);
 
-  /* Glow tokens – adapted for light theme (softer, no muddiness) */
-  --glow-primary: 0 0 14px rgba(0, 102, 112, 0.22), 0 0 28px rgba(100, 60, 180, 0.12);
-  --glow-correct: 0 0 10px rgba(46, 125, 50, 0.40);
-  --glow-present: 0 0 10px rgba(230, 81, 0, 0.40);
-  --glow-header: 0 0 20px rgba(255, 109, 0, 0.20), 0 0 40px rgba(0, 172, 193, 0.15);
+  /* Glow tokens – dark theme */
+  --glow-primary: 0 0 18px rgba(0, 188, 212, 0.45), 0 0 36px rgba(124, 77, 255, 0.35);
+  --glow-correct: 0 0 14px rgba(58, 140, 92, 0.55);
+  --glow-present: 0 0 14px rgba(192, 122, 30, 0.55);
+  --glow-header: 0 0 28px rgba(224, 64, 251, 0.35), 0 0 56px rgba(206, 147, 216, 0.2);
   --glow-absent: none;
 
-  /* Shimmer – orange replaces teal for light theme */
-  --shimmer-color: rgba(255, 109, 0, 0.12);
+  /* Shimmer */
+  --shimmer-color: rgba(0, 188, 212, 0.18);
 
-  /* Colorblind palette (Okabe-Ito, adapted for light bg) */
-  --color-correct-cb: #0072b2;
-  --color-present-cb: #e69f00;
-  --color-absent-cb: #b0a0c8;
-  --glow-correct-cb: 0 0 10px rgba(0, 114, 178, 0.45);
-  --glow-present-cb: 0 0 10px rgba(230, 159, 0, 0.45);
+  /* Colorblind palette (Okabe-Ito, adjusted for dark bg) */
+  --color-correct-cb: #2d6fa8;
+  --color-present-cb: #b88a00;
+  --color-absent-cb: #4a2d6b;
+  --glow-correct-cb: 0 0 14px rgba(45, 111, 168, 0.55);
+  --glow-present-cb: 0 0 14px rgba(184, 138, 0, 0.55);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -127,7 +130,7 @@ html {
   height: 100vh; /* fallback for older browsers */
   height: 100dvh;
   overflow: hidden;
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html,
