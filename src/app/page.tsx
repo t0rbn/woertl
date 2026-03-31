@@ -104,6 +104,26 @@ function GameScreen({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onBack]);
 
+  // On some mobile browsers the CSS overflow: hidden approach is not enough to prevent
+  // scroll when the virtual keyboard appears. The virtual keyboard may also trigger a
+  // resize the visualViewport and may still scroll the page. We listen for visualViewport
+  // resize events and force the window back to the top.
+  // Guard for SSR safety and browsers without visualViewport support (e.g., older Firefox).
+  // Known limitation: browsers without visualViewport API fall back to the CSS-only approach
+  // (overflow: hidden on html) which covers the majority of modern mobile browsers.
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.visualViewport) return;
+
+    function handleViewportResize() {
+      window.scrollTo(0, 0);
+    }
+
+    window.visualViewport!.addEventListener("resize", handleViewportResize);
+    return () => {
+      window.visualViewport!.removeEventListener("resize", handleViewportResize);
+    };
+  }, []);
+
   function handleSubmitGuess() {
     submitGuess();
     // Use requestAnimationFrame to keep the focus call within the same user-gesture
