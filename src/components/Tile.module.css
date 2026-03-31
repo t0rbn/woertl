@@ -42,7 +42,7 @@
   background: var(--gradient-surface);
   border: 2px solid var(--color-primary);
   box-shadow: var(--glow-primary), 0 4px 10px rgba(0, 0, 0, 0.08);
-  color: var(--color-text-primary);
+  color: var(--color-letter-default);
 }
 
 .activeEmpty {
@@ -53,7 +53,7 @@
   background: var(--gradient-surface);
   border: 2px solid var(--color-primary);
   box-shadow: var(--glow-primary), 0 4px 10px rgba(0, 0, 0, 0.08);
-  color: var(--color-text-primary);
+  color: var(--color-letter-default);
 }
 
 /* ===== Wobble-in entry animation ===== */
