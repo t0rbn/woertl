@@ -156,18 +156,18 @@ function GameScreen({
   return (
     <>
       <Toast message={toastMessage} variant={toastVariant} />
+      <div className={styles.gameHeader}>
+        <button
+          className={styles.backBtn}
+          onClick={onBack}
+          aria-label="Zurück zur Levelauswahl"
+          type="button"
+        >
+          ←
+        </button>
+        <span className={styles.gameTitle}>wörtl</span>
+      </div>
       <main className={styles.main}>
-        <div className={styles.gameHeader}>
-          <button
-            className={styles.backBtn}
-            onClick={onBack}
-            aria-label="Zurück zur Levelauswahl"
-            type="button"
-          >
-            ←
-          </button>
-          <span className={styles.gameTitle}>wörtl</span>
-        </div>
         <div
           className={styles.levelBadge}
           aria-live="polite"
