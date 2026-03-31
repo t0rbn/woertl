@@ -19,22 +19,22 @@
 /* Error variant (default) */
 .toastError {
   background: var(--color-error);
-  color: var(--color-text-on-color);
+  color: var(--color-text-on-primary);
 }
 
 /* Loading variant */
 .toastLoading {
   background: var(--color-surface);
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-outline-muted);
+  color: var(--color-primary);
+  border: 1px solid rgba(0, 102, 112, 0.20);
   font-weight: 400;
   font-style: italic;
 }
 
 /* Info variant */
 .toastInfo {
-  background: var(--color-info);
-  color: var(--color-text-on-color);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
 }
 
 /* CSS spinner for the loading variant */

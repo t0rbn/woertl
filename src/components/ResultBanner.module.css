@@ -11,13 +11,13 @@
 .win {
   color: var(--color-correct);
   border-color: var(--color-correct);
-  background-color: rgba(76, 175, 80, 0.1);
+  background-color: rgba(46, 125, 50, 0.10);
 }
 
 .lose {
   color: var(--color-error);
   border-color: var(--color-error);
-  background-color: rgba(239, 83, 80, 0.1);
+  background-color: rgba(198, 40, 40, 0.10);
 }
 
 .heading {

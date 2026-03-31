@@ -8,10 +8,10 @@
 
 .input {
   background: linear-gradient(145deg, var(--color-surface-raised) 0%, var(--color-surface) 100%);
-  border: 2px solid var(--color-primary-dark);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--color-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.50);
   border-radius: 8px;
-  color: var(--color-text);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
   font-size: 1.4rem;
   font-weight: 700;
@@ -27,7 +27,7 @@
 }
 
 .input::placeholder {
-  color: var(--color-outline);
+  color: var(--color-absent);
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
@@ -36,16 +36,16 @@
 
 .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(0, 102, 112, 0.25);
 }
 
 .input.full {
-  box-shadow: 0 0 0 3px rgba(124, 77, 255, 0.4);
+  box-shadow: 0 0 0 3px rgba(0, 102, 112, 0.40);
 }
 
 .input.error {
   border-color: var(--color-error);
-  box-shadow: 0 0 0 3px rgba(239, 83, 80, 0.3);
+  box-shadow: 0 0 0 3px rgba(198, 40, 40, 0.30);
   animation: shake 300ms ease;
 }
 
@@ -63,7 +63,7 @@
 .hint {
   font-family: var(--font-main);
   font-size: var(--font-size-caption);
-  color: var(--color-text-secondary);
+  color: var(--color-primary-light);
   text-align: center;
 }
 
@@ -90,8 +90,8 @@
 
 .submitBtn {
   padding: 10px 32px;
-  background: var(--color-primary-dark);
-  color: var(--color-text-on-color);
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
   border: none;
   border-radius: 8px;
   font-family: var(--font-main);
@@ -107,8 +107,8 @@
 }
 
 .submitBtn.submitBtnFull {
-  background: var(--color-primary-dark);
-  box-shadow: 0 0 0 2px var(--color-primary);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .errorMsg {

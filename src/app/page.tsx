@@ -104,7 +104,8 @@ function GameScreen({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onBack]);
 
-  // Secondary scroll-lock: when the virtual keyboard opens on mobile, some browsers
+  // On some mobile browsers the CSS overflow: hidden approach is not enough to prevent
+  // scroll when the virtual keyboard appears. The virtual keyboard may also trigger a
   // resize the visualViewport and may still scroll the page. We listen for visualViewport
   // resize events and force the window back to the top.
   // Guard for SSR safety and browsers without visualViewport support (e.g., older Firefox).
