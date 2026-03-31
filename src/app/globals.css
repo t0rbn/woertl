@@ -17,30 +17,33 @@
 
 /* Design Tokens – wörtl */
 :root {
-  /* Color tokens */
-  --color-bg: #1a0033;
-  --color-surface: #2b0057;
-  --color-surface-raised: #3d007a;
-  --color-outline: #7c4dff;
-  --color-primary: #ce93d8;
-  --color-primary-dark: #7c4dff;
-  --color-correct: #3a8c5c;
-  --color-present: #c07a1e;
-  --color-absent: #4a2d6b;
-  --color-unused: #3d007a;
-  --color-text: #f3e5f5;
-  --color-text-secondary: #ce93d8;
-  --color-text-on-color: #ffffff;
-  --color-error: #ef5350;
+  /* Background tokens */
+  --color-bg: #ede7f6;
+  --color-surface: #f3eeff;
+  --color-surface-raised: #ffffffcc;
 
-  /* Color-blind palette (Okabe-Ito) */
-  --color-cb-correct: #2d6fa8;
-  --color-cb-present: #b88a00;
-  --color-cb-absent: #4a2d6b;
+  /* Primary (Aqua/Teal) */
+  --color-primary: #006670;
+  --color-primary-light: #00838f;
 
-  /* Secondary accent colors (gradient endpoints only) */
-  --color-accent-teal: #00bcd4;
-  --color-accent-rose: #e040fb;
+  /* Semantic tile colors */
+  --color-correct: #2e7d32;
+  --color-present: #e65100;
+  --color-absent: #b0a0c8;
+
+  /* Error */
+  --color-error: #c62828;
+
+  /* Text tokens */
+  --color-text-primary: #1a0044;
+  --color-text-on-primary: #ffffff;
+  --color-text-on-tile: #ffffff;
+  --color-text-on-absent: #2d1b4e;
+
+  /* Accent tokens (decorative only – gradients only, not semantic) */
+  --color-accent-orange: #ff6d00;
+  --color-accent-orange-light: #ffab40;
+  --color-accent-teal: #00acc1;
 
   /* Typography */
   --font-main: "Comic Neue", "Comic Sans MS", "Comic Sans", cursive;
@@ -61,28 +64,38 @@
   --radius-card: 12px;
   --radius-key: 4px;
 
-  /* Level icon background tokens */
-  --color-level-easy-bg: #1b4d1e;
-  --color-level-easy-fg: var(--color-correct);
-  --color-level-normal-bg: #3d2000;
-  --color-level-normal-fg: var(--color-present);
-  --color-level-hard-bg: #3a0010;
-  --color-level-hard-fg: #f48fb1;
+  /* Level icon background tokens – light tints for light theme */
+  --color-level-easy-bg: #c8e6c9;
+  --color-level-easy-fg: #1b5e20;
+  --color-level-normal-bg: #ffe0b2;
+  --color-level-normal-fg: #bf360c;
+  --color-level-hard-bg: #fce4ec;
+  --color-level-hard-fg: #880e4f;
 
   /* Animation duration – set to 0s via prefers-reduced-motion */
   --animation-duration: 500ms;
 
-  /* Effect & animation tokens */
-  --glow-primary: 0 0 18px rgba(0, 188, 212, 0.45), 0 0 36px rgba(124, 77, 255, 0.35);
-  --glow-correct: 0 0 14px rgba(58, 140, 92, 0.55);
-  --glow-present: 0 0 14px rgba(192, 122, 30, 0.55);
-  --glow-header: 0 0 28px rgba(224, 64, 251, 0.35), 0 0 56px rgba(206, 147, 216, 0.2);
-  --gradient-surface: linear-gradient(145deg, #3d007a 0%, #1f003f 55%, #0d1a2e 100%);
-  --gradient-bg: radial-gradient(ellipse at 50% -10%, #3d007a 0%, #1a0033 50%, #001020 100%);
-  --gradient-tile-empty: linear-gradient(160deg, #3d007a 0%, #00354d 100%);
-  --shimmer-color: rgba(0, 188, 212, 0.18);
-  --glow-correct-cb: 0 0 14px rgba(45, 111, 168, 0.55);
-  --glow-present-cb: 0 0 14px rgba(184, 138, 0, 0.55);
+  /* Gradient tokens */
+  --gradient-bg: radial-gradient(ellipse at 50% -10%, #d1c4e9 0%, #ede7f6 55%, #e8f5e9 100%);
+  --gradient-surface: linear-gradient(145deg, #f3eeff 0%, #ede7f6 60%, #e0f7fa 100%);
+  --gradient-tile-empty: linear-gradient(160deg, #e8e0f5 0%, #b2ebf2 100%);
+
+  /* Glow tokens – adapted for light theme (softer, no muddiness) */
+  --glow-primary: 0 0 14px rgba(0, 102, 112, 0.22), 0 0 28px rgba(100, 60, 180, 0.12);
+  --glow-correct: 0 0 10px rgba(46, 125, 50, 0.40);
+  --glow-present: 0 0 10px rgba(230, 81, 0, 0.40);
+  --glow-header: 0 0 20px rgba(255, 109, 0, 0.20), 0 0 40px rgba(0, 172, 193, 0.15);
+  --glow-absent: none;
+
+  /* Shimmer – orange replaces teal for light theme */
+  --shimmer-color: rgba(255, 109, 0, 0.12);
+
+  /* Colorblind palette (Okabe-Ito, adapted for light bg) */
+  --color-correct-cb: #0072b2;
+  --color-present-cb: #e69f00;
+  --color-absent-cb: #b0a0c8;
+  --glow-correct-cb: 0 0 10px rgba(0, 114, 178, 0.45);
+  --glow-present-cb: 0 0 10px rgba(230, 159, 0, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -108,7 +121,7 @@
 
 html {
   height: 100%;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 html,
@@ -122,7 +135,7 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--gradient-bg, var(--color-bg));
-  color: var(--color-text);
+  color: var(--color-text-primary);
   font-family: var(--font-main);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
