@@ -138,8 +138,12 @@ const GuessInput = forwardRef<HTMLInputElement, GuessInputProps>(
     }
 
     function handleFocus() {
-      if (ref && "current" in ref && ref.current) {
-        ref.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      // Counteract any residual browser scroll that tries to bring the input into view.
+      // The page is locked via overflow: hidden on html/.pageWrapper, so scrolling to top
+      // here is a secondary safety measure for browsers that ignore overflow: hidden during
+      // focus events (known limitation: some older Android WebView versions may still scroll).
+      if (typeof window !== "undefined") {
+        window.scrollTo(0, 0);
       }
     }
 
