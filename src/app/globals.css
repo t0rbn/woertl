@@ -107,7 +107,13 @@
 }
 
 html {
-  height: 100%;
+  /* Use dvh (dynamic viewport height) so the root always fills the visible area above the
+     virtual keyboard on mobile. Falls back to 100vh for older browsers (iOS <15.4, Chrome <108).
+     overflow: hidden prevents the browser from scrolling the page when the virtual keyboard
+     appears and the browser tries to scroll a focused input into view. */
+  height: 100vh; /* fallback for older browsers */
+  height: 100dvh;
+  overflow: hidden;
   color-scheme: dark;
 }
 
