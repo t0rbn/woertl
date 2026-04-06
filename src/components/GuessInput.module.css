@@ -27,7 +27,7 @@
 }
 
 .input::placeholder {
-  color: var(--color-absent);
+  color: var(--color-placeholder, #9575cd);
   font-weight: 400;
   letter-spacing: normal;
   text-transform: none;
