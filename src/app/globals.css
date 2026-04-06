@@ -38,7 +38,13 @@
   --color-text-primary: #f0e6ff;
   --color-text-on-primary: #ffffff;
   --color-text-on-tile: #ffffff;
-  --color-text-on-absent: #b39ddb;
+  --color-text-on-absent: #d7c4f0;
+
+  /* Secondary / auxiliary text – meets WCAG 2.1 AA on dark purple backgrounds */
+  --color-text-secondary: #b39ddb;
+
+  /* Placeholder / secondary UI text – meets WCAG 2.1 AA (4.5:1) on dark purple backgrounds */
+  --color-placeholder: #9575cd;
 
   /* Letter color tokens for filled/active tiles */
   --color-letter-default: #3a8c5c;
