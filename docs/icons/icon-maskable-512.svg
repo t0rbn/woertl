@@ -1,0 +1,34 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#1a0033"/>
+  <!-- Radial glow -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#3d007a" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#1a0033" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#glow)"/>
+  <!-- All content within 10% safe zone (51.2px from each edge) -->
+  <!-- Row 1: W O E (scaled from 192 maskable: factor ~2.667) -->
+  <rect x="58" y="133" width="128" height="128" rx="13" fill="#7c4dff"/>
+  <text x="122" y="227" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="80" fill="#ffffff">W</text>
+  <rect x="208" y="133" width="128" height="128" rx="13" fill="#3d007a"/>
+  <text x="272" y="227" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="80" fill="#ffffff">O</text>
+  <rect x="358" y="133" width="128" height="128" rx="13" fill="#2b0057"/>
+  <text x="422" y="227" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="80" fill="#ce93d8">E</text>
+  <!-- Row 2: R T -->
+  <rect x="133" y="282" width="128" height="128" rx="13" fill="#7c4dff"/>
+  <text x="197" y="376" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="80" fill="#ffffff">R</text>
+  <rect x="283" y="282" width="128" height="128" rx="13" fill="#7c4dff"/>
+  <text x="347" y="376" text-anchor="middle"
+    font-family="'Comic Sans MS','Comic Sans',cursive"
+    font-weight="bold" font-size="80" fill="#ffffff">T</text>
+</svg>
